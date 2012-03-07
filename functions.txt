@@ -1,0 +1,7 @@
+TODO!!!
+
+The following kernel functions are used once I roll this into a kernel patch:
+
+1. output_raw_report
+2. hid_set_field
+3. hid_submit_report

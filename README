@@ -1,0 +1,106 @@
+#
+# Greetings!!!
+#
+#-----------------------------------------------------------------------------
+# About this package
+#-----------------------------------------------------------------------------
+# This package, resetmsmice, fixes scroll wheel issues with certain Wireless Microsoft mice in X.org (includes KDE & Gnome applications), where the vertical wheel scrolls abnormally fast. Only needed if you dual boot between Microsoft Windows and some linux distro.
+# Known to fix the vertical scroll wheel issue with the following models (and others related):
+#    Microsoft Wireless Mobile Mouse 3500
+#    Microsoft Wireless Mouse 5000
+# This program basically just resets a setting in the mouse through usb communications and then exits. Only if the mouse matches vendor [0x045e] (Microsoft) and product code [0x0745] (a series of Microsoft Wireless mice) it will check for this usb setting.
+#
+# Copyright (C) 2011  Paul F. Richards (paulrichards321@gmail.com)
+# 
+# This code is under the GNU GPL v2 license. See below for full license! 
+
+#-----------------------------------------------------------------------------
+# Software requirements to compile 'resetmsmice':
+#-----------------------------------------------------------------------------
+# 1) pkg-config
+#    In Ubuntu, Kubuntu, or Mint Linux this package is called: pkg-config
+#    You can get it through synaptic, or on the command line as root type this:
+sudo apt-get install pkg-config
+#
+#    On Redhat, Centos, or Redhat, you can grab it by typing the following on the command line:
+#
+#    In Fedora, and probably Centos and Redhat as well, as root, type this on the command line: 
+yum install pkgconfig
+#
+#    If you are on another distro and can't seem to find a package for pkgconfig, grab it here:
+#    http://www.freedesktop.org/wiki/Software/pkg-config
+#    You will need to compile pkg-config and install it if your distro doesn't have a package.
+#
+# 2) libusb-1.0 development files
+#    In Ubuntu, Kubuntu, or Mint Linux this package is called: libusb-1.0-0-dev
+#    You can get it through synaptic if you have it installed or on the command line:
+sudo apt-get install libusb-1.0-0-dev
+#
+#    In Fedora, Centos, or Redhat, type the following as root:
+yum install libusb1-devel
+#
+#    If you can't seem to find this package in your distro's package manager,
+#    you can grab the tarball here:
+#    http://sourceforge.net/projects/libusb/files/libusb-1.0/
+#
+#    I use libusb-1.0.8, but anything after that should work as well.
+
+#-----------------------------------------------------------------------------
+# Compiling and installing this package:
+#-----------------------------------------------------------------------------
+# Open a command line, and cd into the directory you untarred this package then type:
+./configure
+make
+make install
+
+# If configure or make error out, make sure you have the software requirements above.
+# The make install command will need to be run with the root account, in Ubuntu, sudo make install
+
+#-----------------------------------------------------------------------------
+# To have the package run on system bootup
+#-----------------------------------------------------------------------------
+# First you will need to compile the package and install it, as shown above.
+# To enable resetmsmice to run on boot, please run 'resetmsmice-enable-boot.sh' with one of the following options:
+
+# If you run a recent version of Ubuntu, Kubuntu, Mint Linux, or any other Linux distro that runs upstart:
+resetmsmice-enable-boot.sh --upstart
+
+# If you run a recent version Fedora or OpenSUSE or any other Linux distro that uses systemd and want systemd to launch resetmsmice automatically on bootup run:
+resetmsmice-enable-boot.sh --systemd
+
+# If you run Debian, Redhat, or any other distro that uses System V style startup scripts and launch resetmsmice automatically on bootup run:
+resetmsmice-enable-boot.sh --sysv
+
+# Don't know what option to use!!!!? 
+#
+# System V startup scripts are fairly common and a lot of distros still keep it for backwards compatitibility so if you don't know what type of startup scripts your system uses, as root, try running:
+resetmsmice-enable-boot.sh --sysv
+
+#
+#-----------------------------------------------------------------------------
+# To disable resetmsmice from starting on bootup
+#-----------------------------------------------------------------------------
+# On the command line: resetmsmice-enable-boot.sh --disable
+#
+# This will stop resetmsmice from running on bootup.
+#
+#
+#-----------------------------------------------------------------------------
+# License
+#-----------------------------------------------------------------------------
+# Copyright (C) 2011  Paul F. Richards (paulrichards321@gmail.com)
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
