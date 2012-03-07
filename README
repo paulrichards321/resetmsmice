@@ -22,8 +22,6 @@
 #    You can get it through synaptic, or on the command line as root type this:
 sudo apt-get install pkg-config
 #
-#    On Redhat, Centos, or Redhat, you can grab it by typing the following on the command line:
-#
 #    In Fedora, and probably Centos and Redhat as well, as root, type this on the command line: 
 yum install pkgconfig
 #
