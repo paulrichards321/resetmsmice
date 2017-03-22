@@ -1,0 +1,7 @@
+#!/bin/sh
+if dpkg-statoverride  --list /usr/bin/resetmsmice >/dev/null 2>&1
+then
+	dpkg-statoverride --remove /usr/bin/resetmsmice
+fi
+resetmsmice-enable-boot --disable
+#DEBHELPER#

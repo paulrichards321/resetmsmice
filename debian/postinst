@@ -1,0 +1,9 @@
+#!/bin/sh
+groupadd -f ms-usb
+if ! dpkg-statoverride --list /usr/bin/resetmsmice >/dev/null 2>&1
+then
+	dpkg-statoverride --update --add root ms-usb 2755 /usr/bin/resetmsmice
+fi
+udevadm trigger --attr-match=idVendor=045e
+update-desktop-database
+/usr/sbin/resetmsmice-enable-boot --enable

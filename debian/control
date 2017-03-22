@@ -1,0 +1,28 @@
+Source: resetmsmice
+Section: x11
+Priority: extra
+Maintainer: Paul Franklin Richards <paulrichards321@gmail.com>
+Build-Depends: debhelper (>= 9.0.0), pkg-config, libusb-1.0-0-dev, libgtk2.0-dev
+Standards-Version: 3.9.4
+Homepage: http://sourceforge.net/projects/resetmsmice/?source=directory 
+#Vcs-Git: git://git.debian.org/collab-maint/resetmsmice.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/resetmsmice.git;a=summary
+
+Package: resetmsmice
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Fixes scroll wheel issues with Microsoft mice 
+	This package, resetmsmice, fixes scroll wheel issues with
+	certain  Microsoft mice in X.org (includes KDE & Gnome 
+	applications), where the vertical wheel scrolls abnormally
+	fast. Only needed if you dual boot between Microsoft
+	Windows and some linux distro. This program basically just
+	resets a setting in the mouse through usb communications
+	and then exits. Known to fix the vertical scroll wheel 
+	issue with the following models (and others related):
+	    * Microsoft Wireless Mouse 1000
+	    * Microsoft Wireless Optical Desktop 3000
+	    * Microsoft Wireless Mobile Mouse 3500
+            * Microsoft Wireless Mobile Mouse 4000
+	    * Microsoft Comfort Mouse 4500
+	    * Microsoft Wireless Mouse 5000

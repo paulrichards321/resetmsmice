@@ -1,0 +1,409 @@
+/*
+To manually compile this (those are backticks not quotes):
+  g++ -Wall -g gui.cc -o resetmsmice-gui `pkg-config gtkmm-2.4 --cflags --libs`
+Then execute it using:
+  ./resetmsmice-gui
+*/
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cerrno>
+#include <vector>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <gtkmm.h>
+#include <unistd.h>
+
+class ResetWindow {
+protected:
+    Glib::RefPtr<Gtk::Builder> refBuilder;
+    Gtk::Dialog *m_dialog;
+    Gtk::Button *m_enable_button, *m_disable_button, *m_reset_now_button;
+    Gtk::Label *m_status_label;
+    Gtk::TextView *m_text_view;
+    Glib::RefPtr<Gtk::TextBuffer> m_buffer;
+    Gtk::VBox *m_vbox1;
+    bool resized;
+    Glib::Thread *m_capture_thread;
+    bool m_thread_running;
+    Glib::Dispatcher m_gui_thread_set_terminal_text, m_gui_thread_set_status_text;
+    Glib::ustring m_terminal_text, m_status_text;
+public:
+    ResetWindow();
+    ~ResetWindow();
+    Gtk::Dialog* create();
+    void enable_boot(bool);
+    void enable_clicked();
+    void disable_clicked();
+    void reset_now_clicked();
+    void reset_now();
+    bool create_terminal_view();
+    void update_status_text();
+    void set_status_text();
+    void set_status_text_thread_safe(const Glib::ustring&);
+    void set_terminal_text();
+    void set_terminal_text_thread_safe(const Glib::ustring&);
+};
+
+
+void do_nothing_fn(const Glib::ustring&) {} 
+
+int capture_output(Glib::ustring& exe, Glib::ustring& output, bool quit_on_newline, sigc::slot<void, const Glib::ustring&> = sigc::ptr_fun(&do_nothing_fn))
+{
+    //FILE *fp;
+    int pipefd[2];
+    pid_t pid;
+    //int fd;
+    char key = 0;
+    int status, retval;
+    int count = 0;
+    
+    // fp = popen(exe.c_str(), "r");
+    pipe(pipefd);
+
+    if ((pid = fork()) == 0) {
+        std::vector<Glib::ustring> str_args;
+        std::vector<const char*> ptr_args;
+        std::string root_cmd;
+        close(pipefd[0]); // in child
+        dup2(pipefd[1], 1);
+        dup2(pipefd[1], 2);
+        close(pipefd[1]);
+        Glib::ustring::size_type start, end, size;
+        for (start = 0, count = 0; start < exe.length(); count++) {
+            end = exe.find(' ', start);
+            if (end == Glib::ustring::npos) {
+                size = exe.length() - start;
+            } else {
+                size = end - start;
+            }
+            if (count == 0) {
+                root_cmd = exe.substr(start, size);
+            } 
+            str_args.push_back(exe.substr(start, size));
+            ptr_args.push_back(str_args[count-1].c_str());
+            start += size + 1;
+        }
+        ptr_args.push_back(NULL);
+        retval = execv(root_cmd.c_str(), (char* const*) &ptr_args.front());
+        return retval;
+    } else if (pid == -1) {
+        return -1;
+    }
+    close(pipefd[1]); // close the write end of the pipe in the parent
+    // read the pipe
+    /*read(pipefd[0], ...);
+    if (fp == NULL) {
+        output = strerror(errno);
+        return 0;
+    }*/
+
+    while ((status = read(pipefd[0], &key, 1)) > 0 && key != EOF && (quit_on_newline == false || (key != 0x0D && key != 0x0A))) {
+        output += key;
+        if (update_text) update_text(output);
+    }
+    if (status == -1) {
+        output += strerror(errno);
+        if (update_text) update_text(output);
+    }
+    g_print("Closing stream...\n");
+    
+    waitpid(pid, &status, 0);
+    close(pipefd[0]);
+
+    /*close_val = pclose(fp);
+    if (close_val == -1) {
+        error_msg = strerror(errno);
+        g_print("Error on close: %s", error_msg);
+    }*/
+ 
+    if (WIFEXITED(status)) { // child terminated normally
+        retval = WEXITSTATUS(status);
+    } else {
+        output += strerror(errno);
+        if (update_text) update_text(output);
+        retval = -1;
+    } 
+    return retval;
+} 
+
+
+bool find_it(const char *exe_name, Glib::ustring& location)
+{
+    Glib::ustring which = "which ";
+    const char *paths[] = { "/usr/local/sbin/", "/usr/local/bin/", "/usr/sbin/",
+                      "/usr/bin/", "/sbin/", "/bin/" };
+    int i;
+    struct stat info;
+
+    which += exe_name;
+    location.erase();
+    if (capture_output(which, location, true) == 0) {
+        return true;
+    }
+
+    for (i = 0; i < 6; i++) {
+        location = paths[i];
+        location += exe_name;
+        if (stat(location.c_str(), &info) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+ResetWindow::ResetWindow()
+{ 
+    resized = false; 
+    m_capture_thread = NULL; 
+    m_thread_running = false; 
+    m_gui_thread_set_terminal_text.connect( sigc::mem_fun(*this, &ResetWindow::set_terminal_text) ); 
+    m_gui_thread_set_status_text.connect( sigc::mem_fun(*this, &ResetWindow::set_status_text) );
+}
+
+
+void ResetWindow::set_status_text()
+{
+    m_status_label->set_text(m_status_text);
+}
+
+
+void ResetWindow::set_status_text_thread_safe(const Glib::ustring& text)
+{
+    m_status_text = text;
+    m_gui_thread_set_status_text();
+}
+
+
+void ResetWindow::get_status_text()
+{
+    Glib::ustring status = "Reset any Microsoft mice on bootup is: ";
+    Glib::ustring enable_boot_path, output;
+
+    if (find_it("resetmsmice-enable-boot", enable_boot_path) == false) {
+        g_print("Error: Cannot find resetmsmice-enable-boot script. Please make sure this script is installed in your PATH.");
+        status += "UNKNOWN ";
+        set_status_text_thread_safe(status);
+        return;
+    }
+    enable_boot_path += " --status";
+    g_print("Running %s...\n", enable_boot_path.c_str());
+    if (capture_output(enable_boot_path, output, true) == 0) {
+        status += output;
+        status += " ";
+    } else {
+        status += "UNKNOWN ";
+        g_print("Error getting status: %s", output.c_str());
+    }
+    set_status_text_thread_safe(status);
+    return;
+}    
+
+
+bool ResetWindow::create_terminal_view(void)
+{
+    if (resized && m_buffer) { 
+        return true; 
+    } else if (resized) {
+        return false;
+    }
+
+    resized = true;
+
+    m_text_view = new Gtk::TextView();
+    m_text_view->set_editable(false);
+    m_vbox1->pack_start(*m_text_view, false, false, 0);
+    m_buffer = m_text_view->get_buffer();
+    m_text_view->show();    
+    if (m_buffer) {
+        return true;
+    } else {
+        g_print("Fatal Error: No terminal text view buffer! resetmsmice-gui will not work!");
+        return false;
+    }
+}
+
+
+void ResetWindow::set_terminal_text()
+{
+    if (m_buffer) {
+        m_buffer->set_text(m_terminal_text);
+    }
+}
+
+
+void ResetWindow::set_terminal_text_thread_safe(const Glib::ustring& text)
+{
+    m_terminal_text = text;
+    m_gui_thread_set_terminal_text();
+}
+
+
+void ResetWindow::enable_boot(bool enable)
+{
+    Glib::ustring pkexec_cmd, enable_boot_path, output;
+
+    if (find_it("pkexec", pkexec_cmd) == false) { 
+	    set_terminal_text_thread_safe("Error: Cannot find pkexec binary in PATH. Please make sure policy kit is installed.");
+        m_thread_running = false;
+        return;
+    }
+    
+    if (find_it("resetmsmice-enable-boot", enable_boot_path) == false) {
+	    set_terminal_text_thread_safe("Error: Cannot find resetmsmice-enable-boot script. Please make sure this script is installed in your PATH.");
+        m_thread_running = false;
+        return;
+	}
+
+    pkexec_cmd += " ";
+    pkexec_cmd += enable_boot_path;
+    if (enable == true) {
+        pkexec_cmd += " --enable";
+    } else {
+        pkexec_cmd += " --disable";
+    }
+    g_print("Running %s...\n", pkexec_cmd.c_str()); //
+    if (capture_output(pkexec_cmd, output, false, sigc::mem_fun(*this, &ResetWindow::set_terminal_text_thread_safe)) == 0) {
+        update_status_text();
+    } 
+    m_thread_running = false;
+    return;
+}
+
+
+void ResetWindow::enable_clicked()
+{
+    if (m_thread_running == false) {
+        m_thread_running = true;
+        create_terminal_view();
+        m_capture_thread = Glib::Thread::create(sigc::bind(sigc::mem_fun(*this, &ResetWindow::enable_boot), true), true);
+    }
+}
+
+
+void ResetWindow::disable_clicked()
+{
+    if (m_thread_running == false) {
+        m_thread_running = true;
+        create_terminal_view();
+        m_capture_thread = Glib::Thread::create(sigc::bind(sigc::mem_fun(*this, &ResetWindow::enable_boot), false), true);
+    }
+}
+
+
+void ResetWindow::reset_now_clicked()
+{
+    if (m_thread_running == false) {
+        m_thread_running = true;
+        create_terminal_view();
+        m_capture_thread = Glib::Thread::create(sigc::mem_fun(*this, &ResetWindow::reset_now), true);
+    }
+}
+
+
+void ResetWindow::reset_now()
+{
+    Glib::ustring resetmsmice_cmd, output;
+    
+    if (find_it("resetmsmice", resetmsmice_cmd) == false) {
+        set_terminal_text_thread_safe("Error: Cannot find resetmsmice binary in PATH.");
+        m_thread_running = false;
+        return;
+    }
+    g_print("Running %s...\n", resetmsmice_cmd.c_str());
+    capture_output(resetmsmice_cmd, output, false, sigc::mem_fun(*this, &ResetWindow::set_terminal_text_thread_safe));
+    g_print("%s\n", output.c_str());
+    m_thread_running = false;
+}
+
+
+Gtk::Dialog* ResetWindow::create()
+{
+    struct stat info;
+    refBuilder = Gtk::Builder::create();
+    const char *ui_locations[] = { "/usr/share/resetmsmice/resetmsmice.ui", "/usr/local/share/resetmsmice/resetmsmice.ui" };
+    int ui_location_index = 0;
+    bool found = false;
+ 
+    if (stat(ui_locations[0], &info)==0) {
+        found = true;
+    }
+    if (found == false && stat(ui_locations[1], &info)==0) {
+        found = true;
+        ui_location_index = 1;
+    }
+    if (found == false) {
+        g_print("resetmsmice_gui fatal error: cannot find resetmsmice.ui in /usr/share/resetmsmice or /usr/local/share/resetmsmice\n");
+        return NULL;
+    }
+
+    try {
+        refBuilder->add_from_file(ui_locations[ui_location_index]);
+    } catch (...) {
+        g_print("failed to build dialog.");
+        return NULL;
+    }
+    
+    refBuilder->get_widget("dialog1", m_dialog);
+    if (m_dialog == NULL) {
+        g_print("resetmsmice_gui gtk fatal error: failed getting window from builder");
+        return NULL;
+    }
+    refBuilder->get_widget("status_text", m_status_label);
+    refBuilder->get_widget("enable_button", m_enable_button);
+    refBuilder->get_widget("disable_button", m_disable_button);
+    refBuilder->get_widget("reset_now_button", m_reset_now_button);
+    refBuilder->get_widget("vbox1", m_vbox1);    
+    m_dialog->set_title("Reset Microsoft Mice");
+
+    m_dialog->set_resizable(false);
+
+    if (m_status_label == NULL) g_print("Cannot find status label element.");
+    if (m_reset_now_button == NULL) g_print("Cannot find reset now button.");
+
+    m_dialog->signal_delete_event().connect(
+        sigc::mem_fun(*this, &ResetWindow::delete_event) );
+    if (m_enable_button) m_enable_button->signal_clicked().connect(
+        sigc::mem_fun(*this, &ResetWindow::enable_clicked) );
+    if (m_disable_button) m_disable_button->signal_clicked().connect(
+        sigc::mem_fun(*this, &ResetWindow::disable_clicked) );
+    if (m_reset_now_button) m_reset_now_button->signal_clicked().connect( 
+        sigc::mem_fun(*this, &ResetWindow::reset_now_clicked) );
+    return m_dialog;
+}
+
+
+ResetWindow::~ResetWindow() 
+{
+    if (m_thread_running) 
+        m_capture_thread->join();
+
+    if (m_dialog) delete m_dialog;
+}
+
+
+void ResetWindow::delete_event()
+{
+    if (
+}
+
+
+int main(int argc, char **argv)
+{
+    Gtk::Dialog *pDialog;
+    Gtk::Main kit(argc, argv);
+    ResetWindow reset_window;
+
+    pDialog = reset_window.create();
+    if (pDialog) {
+        pDialog->show_all_children();
+        kit.run(*pDialog);
+        return 0;
+    }
+    return 1;
+}
+

@@ -1,0 +1,11 @@
+# Automatically added by dh_installudev
+if [ "$1" = configure ]; then
+	if [ -e "/etc/udev/rules.d/z60_resetmsmice.rules" ]; then
+		echo "Preserving user changes to /etc/udev/rules.d/60-resetmsmice.rules ..."
+		if [ -e "/etc/udev/rules.d/60-resetmsmice.rules" ]; then
+			mv -f "/etc/udev/rules.d/60-resetmsmice.rules" "/etc/udev/rules.d/60-resetmsmice.rules.dpkg-new"
+		fi
+		mv -f "/etc/udev/rules.d/z60_resetmsmice.rules" "/etc/udev/rules.d/60-resetmsmice.rules"
+	fi
+fi
+# End automatically added section

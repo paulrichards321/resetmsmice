@@ -1,104 +1,127 @@
-#
-# Greetings!!!
-#
-#-----------------------------------------------------------------------------
-# About this package
-#-----------------------------------------------------------------------------
-# This package, resetmsmice, fixes scroll wheel issues with certain Wireless Microsoft mice in X.org (includes KDE & Gnome applications), where the vertical wheel scrolls abnormally fast. Only needed if you dual boot between Microsoft Windows and some linux distro.
-# Known to fix the vertical scroll wheel issue with the following models (and others related):
-#    Microsoft Wireless Mobile Mouse 3500
-#    Microsoft Wireless Mouse 5000
-# This program basically just resets a setting in the mouse through usb communications and then exits. Only if the mouse matches vendor [0x045e] (Microsoft) and product code [0x0745] (a series of Microsoft Wireless mice) it will check for this usb setting.
-#
-# Copyright (C) 2011  Paul F. Richards (paulrichards321@gmail.com)
-# 
-# This code is under the GNU GPL v2 license. See below for full license! 
 
-#-----------------------------------------------------------------------------
-# Software requirements to compile 'resetmsmice':
-#-----------------------------------------------------------------------------
-# 1) pkg-config
-#    In Ubuntu, Kubuntu, or Mint Linux this package is called: pkg-config
-#    You can get it through synaptic, or on the command line as root type this:
+Greetings!!!
+
+------------------------------------------------------------------------------
+About this package
+------------------------------------------------------------------------------
+This package, resetmsmice, fixes scroll wheel issues with certain Wireless Microsoft mice in X.org (includes KDE & Gnome applications), where the vertical wheel scrolls abnormally fast. Only needed if you dual boot between Microsoft Windows and some linux distro.
+Known to fix the vertical scroll wheel issue with the following models (and others related):
+    Microsoft Wireless Mouse 1000
+    Microsoft Wireless Optical Desktop 3000
+    Microsoft Wireless Mobile Mouse 3500
+    Microsoft Wireless Mobile Mouse 4000
+    Microsoft Comfort Mouse 4500
+    Microsoft Wireless Mouse 5000
+This program basically just resets a setting in the mouse through usb communications and then exits. 
+
+Please let me know if this works for your mouse not listed above!!! 
+
+Copyright (C) 2011-2014  Paul F. Richards (paulrichards321@gmail.com)
+ 
+This code is under the GNU GPL v2 license. See below for full license! 
+
+------------------------------------------------------------------------------
+Software requirements to compile 'resetmsmice':
+------------------------------------------------------------------------------
+ 1) pkg-config
+    In Ubuntu, Kubuntu, or Mint Linux this package is called: pkg-config
+    You can get it through synaptic, or on the command line as root type this:
 sudo apt-get install pkg-config
-#
-#    In Fedora, and probably Centos and Redhat as well, as root, type this on the command line: 
-yum install pkgconfig
-#
-#    If you are on another distro and can't seem to find a package for pkgconfig, grab it here:
-#    http://www.freedesktop.org/wiki/Software/pkg-config
-#    You will need to compile pkg-config and install it if your distro doesn't have a package.
-#
-# 2) libusb-1.0 development files
-#    In Ubuntu, Kubuntu, or Mint Linux this package is called: libusb-1.0-0-dev
-#    You can get it through synaptic if you have it installed or on the command line:
-sudo apt-get install libusb-1.0-0-dev
-#
-#    In Fedora, Centos, or Redhat, type the following as root:
-yum install libusb1-devel
-#
-#    If you can't seem to find this package in your distro's package manager,
-#    you can grab the tarball here:
-#    http://sourceforge.net/projects/libusb/files/libusb-1.0/
-#
-#    I use libusb-1.0.8, but anything after that should work as well.
 
-#-----------------------------------------------------------------------------
-# Compiling and installing this package:
-#-----------------------------------------------------------------------------
-# Open a command line, and cd into the directory you untarred this package then type:
+    In Fedora, and probably Centos and Redhat as well, as root, type this on the command line: 
+yum install pkgconfig
+
+    If you are on another distro and can't seem to find a package for pkgconfig, grab it here:
+    http://www.freedesktop.org/wiki/Software/pkg-config
+    You will need to compile pkg-config and install it if your distro doesn't have a package.
+
+ 2) pthread runtime and development libraries
+    Most linux boxes should have the runtime library already installed, the exception would be maybe some embedded devices that run a very stripped down kernel and distro. The pthread development headers and library are usually already in your distro's gcc/glibc development library packages.
+
+ 3) libusb-1.0 development files
+    In Ubuntu, Kubuntu, or Mint Linux this package is called: libusb-1.0-0-dev
+    You can get it through synaptic if you have it installed or on the command line:
+sudo apt-get install libusb-1.0-0-dev
+
+    In Fedora, Centos, or Redhat, type the following as root:
+yum install libusb1-devel
+
+    If you can't seem to find this package in your distro's package manager,
+    you can grab the tarball here:
+    http://sourceforge.net/projects/libusb/files/libusb-1.0/
+
+    I use libusb-1.0.8, but anything after that should work as well.
+
+ 4) gtk development files and associated dependencies
+    In Ubuntu and other distros built on it,
+sudo apt-get install libgtk2.0-dev
+    In Fedora and probably Centos and Redhat as well, as root, type the follow as root:
+yum install gtk2-devel
+
+------------------------------------------------------------------------------
+Compiling and installing this package:
+------------------------------------------------------------------------------
+Open a command line, and cd into the directory you untarred this package then type:
 ./configure
 make
 make install
 
-# If configure or make error out, make sure you have the software requirements above.
-# The make install command will need to be run with the root account, in Ubuntu, sudo make install
+If configure or make error out, make sure you have the software requirements above.
+The make install command will need to be run with the root account, in Ubuntu:
+sudo make install
 
-#-----------------------------------------------------------------------------
-# To have the package run on system bootup
-#-----------------------------------------------------------------------------
-# First you will need to compile the package and install it, as shown above.
-# To enable resetmsmice to run on boot, please run 'resetmsmice-enable-boot.sh' with one of the following options:
+------------------------------------------------------------------------------
+To configure the system through the graphical interface after install
+------------------------------------------------------------------------------
+If you have a Gnome, KDE, or Unity desktop, go to the Settings submenu and you will see an icon there for 'Microsoft Mouse Settings' for launching the program.
 
-# If you run a recent version of Ubuntu, Kubuntu, Mint Linux, or any other Linux distro that runs upstart:
-resetmsmice-enable-boot.sh --upstart
+To launch it from the command line run:
+resetmsmice-gui
 
-# If you run a recent version Fedora or OpenSUSE or any other Linux distro that uses systemd and want systemd to launch resetmsmice automatically on bootup run:
-resetmsmice-enable-boot.sh --systemd
+From the graphical interface you can enable/disable the mouse to be reset on boot or reset right now. 
 
-# If you run Debian, Redhat, or any other distro that uses System V style startup scripts and launch resetmsmice automatically on bootup run:
-resetmsmice-enable-boot.sh --sysv
+------------------------------------------------------------------------------
+To have the package run on system bootup on the command line
+------------------------------------------------------------------------------
+By default the make install script sets up the package to run on boot, but if you disable it and ever need to enable it manually again run as root:
+resetmsmice-enable-boot --enable
 
-# Don't know what option to use!!!!? 
-#
-# System V startup scripts are fairly common and a lot of distros still keep it for backwards compatitibility so if you don't know what type of startup scripts your system uses, as root, try running:
-resetmsmice-enable-boot.sh --sysv
+------------------------------------------------------------------------------
+To disable resetmsmice from starting on bootup on the command line
+------------------------------------------------------------------------------
+as root type: 
+resetmsmice-enable-boot --disable
 
-#
-#-----------------------------------------------------------------------------
-# To disable resetmsmice from starting on bootup
-#-----------------------------------------------------------------------------
-# On the command line: resetmsmice-enable-boot.sh --disable
-#
-# This will stop resetmsmice from running on bootup.
-#
-#
-#-----------------------------------------------------------------------------
-# License
-#-----------------------------------------------------------------------------
-# Copyright (C) 2011  Paul F. Richards (paulrichards321@gmail.com)
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-#
+This will stop resetmsmice from running on bootup.
+
+
+------------------------------------------------------------------------------
+Optional linux kernel patch included
+------------------------------------------------------------------------------
+If you know how to compile your own kernel, I included a kernel patch for the 3.3.0 series kernel.
+It is in this tarball in a directory: optional-kernel-patch/msresetmouse-3.3.0.patch
+The userland program will be enough, but hopefully someday the patch will make it into the kernel after the userland program has tested the usb code enough!
+
+------------------------------------------------------------------------------
+License
+------------------------------------------------------------------------------
+Copyright (C) 2011,2012  Paul F. Richards (paulrichards321@gmail.com)
+
+Large parts of the code included in this package was taken from the Linux
+kernel, and the below license applies to that as well. See each file for
+more details.
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
