@@ -179,7 +179,7 @@ Description=Fixes scroll wheel issues with certain Wireless Microsoft mice in X.
 After=syslog.target
 
 [Service]
-ExecStart=$RESETMSMICE
+ExecStart=-$RESETMSMICE
 Type=oneshot
 
 [Install]

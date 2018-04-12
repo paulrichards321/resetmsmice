@@ -12,6 +12,7 @@ Known to fix the vertical scroll wheel issue with the following models (and othe
     Microsoft Wireless Mobile Mouse 4000
     Microsoft Comfort Mouse 4500
     Microsoft Wireless Mouse 5000
+    Microsoft Sculpt Mouse
 This program basically just resets a setting in the mouse through usb communications and then exits. 
 
 Please let me know if this works for your mouse not listed above!!! 

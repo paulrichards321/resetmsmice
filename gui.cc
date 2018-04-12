@@ -25,7 +25,8 @@ static const char * about_text =
     "    Microsoft Wireless Mobile Mouse 3500\n"
     "    Microsoft Wireless Mobile Mouse 4000\n"
     "    Microsoft Comfort Mouse 4500\n"
-    "    Microsoft Wireless Mouse 5000\n\n"
+    "    Microsoft Wireless Mouse 5000\n"
+    "    Microsoft Sculpt Mouse\n\n"
     "This program basically just resets a setting in the mouse through usb communications and then exits.";
 
 class ExecSave {
@@ -84,7 +85,6 @@ public:
 signed char ExecSave::run(std::string& exe, std::string& output, bool quit_on_newline, void (*append_text)(const std::string&, gpointer), gpointer data)
 {
     std::vector<std::string> str_args;
-    std::vector<const char*> ptr_args;
     std::string root_cmd;
     std::string::size_type start, end, size;
     int retval;
@@ -113,17 +113,21 @@ signed char ExecSave::run(std::string& exe, std::string& output, bool quit_on_ne
             root_cmd = exe.substr(start, size);
         } 
         str_args.push_back(exe.substr(start, size));
-        ptr_args.push_back(str_args[count].c_str());
+        std::cout << "testing: " << str_args[count];
         start += size + 1;
     }
-    ptr_args.push_back(NULL);
- 
+    const char *ptr_args[str_args.size()+1];
     std::cout << "Executing: ";
-    char* const* ptr_args2 = (char* const*) &ptr_args.front();
-    for (int i = 0; ptr_args2[i] != NULL; i++) {
-        std::cout << ptr_args2[i] << " ";
+    
+//(char* const*) &ptr_args.front();
+    int sub = 0;
+    while (sub < str_args.size()) {
+       ptr_args[sub] = str_args[sub].c_str(); 
+       std::cout << ptr_args[sub] << " ";
+       sub++;
     }
-    std::cout << std::endl;
+    ptr_args[sub] = NULL;
+    std::cout << std::endl << std::flush;
     
     if (pipe(m_pipefd) == -1) {
         m_output += strerror(errno);
@@ -138,7 +142,7 @@ signed char ExecSave::run(std::string& exe, std::string& output, bool quit_on_ne
         dup2(m_pipefd[1], STDOUT_FILENO);
         dup2(m_pipefd[1], STDERR_FILENO);
         close(m_pipefd[1]); // in child
-        retval = execvp(root_cmd.c_str(), (char* const*) &ptr_args.front());
+        retval = execvp(root_cmd.c_str(), (char* const*) ptr_args);
         if (retval == -1) perror("Arg!");
         _exit(retval);
     } else if (m_pid == -1) {

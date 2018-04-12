@@ -13,6 +13,7 @@
  *    Microsoft Wireless Mobile Mouse 4000
  *    Microsoft Comfort Mouse 4500
  *    Microsoft Wireless Mouse 5000
+ *    Microsoft Sculpt Mouse
  *
  * Copyright (C) 2011,2012  Paul F. Richards (paulrichards321@gmail.com)
  *
@@ -48,6 +49,7 @@ static const char* syntax =
   "*    Microsoft Wireless Mobile Mouse 4000\n"
   "*    Microsoft Comfort Mouse 4500\n"
   "*    Microsoft Wireless Mouse 5000\n"
+  "*    Microsoft Sculpt Mouse\n"
   "This program basically just resets a setting in the mouse through usb\n"
   "communications and then exits.\n"
   "If it is run with no options, check all Microsoft mice plugged into the\n"

@@ -1,8 +1,18 @@
-AC_INIT([resetmsmice], 1.1.1, [paulrichards321@gmail.com])
+AC_INIT([resetmsmice], 1.1.3, [paulrichards321@gmail.com])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADER([conf.h])
-PKG_CHECK_MODULES(USB_DEPS, libusb-1.0 >= 1.0)
-PKG_CHECK_MODULES(GTK_DEPS, gtk+-2.0 >= 2.0)
+AC_MSG_CHECKING([pkg-config m4 macros])
+if test m4_ifdef([PKG_CHECK_MODULES], [yes], [no]) == yes; then
+    AC_MSG_RESULT([yes]);
+else
+    AC_MSG_RESULT([no]);
+    AC_MSG_ERROR([
+pkg-config is required.
+See pkg-config.freedesktop.org])
+fi
+
+PKG_CHECK_MODULES([USB_DEPS], [libusb-1.0 >= 1.0])
+PKG_CHECK_MODULES([GTK_DEPS], [gtk+-2.0 >= 2.0])
 AC_CHECK_LIB(pthread, pthread_create, [LIBPTHREAD="-lpthread"], [LIBPTHREAD=""])
 AC_PROG_CC
 AC_PROG_CXX
