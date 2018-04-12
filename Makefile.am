@@ -1,19 +1,19 @@
 udevrulesdir = $(udevdir)/rules.d
-udevrules_DATA = 60-resetmsmice.rules 
+udevrules_DATA = $(top_srcdir)/60-resetmsmice.rules 
 
 AM_CPPFLAGS = -g -Wall
 bin_PROGRAMS = resetmsmice resetmsmice-gui
-sbin_SCRIPTS = resetmsmice-enable-boot
+sbin_SCRIPTS = $(top_srcdir)/resetmsmice-enable-boot
 
-resetmsmice_SOURCES = main.c parse.c
+resetmsmice_SOURCES = $(top_srcdir)/main.c $(top_srcdir)/parse.c $(top_srcdir)/hid-userland.h
 resetmsmice_LDADD = $(USB_DEPS_LIBS) $(LIBPTHREAD)
 resetmsmicedir = $(pkgdatadir)
-resetmsmice_DATA = resetmsmice.ui
+resetmsmice_DATA = $(top_srcdir)/resetmsmice.ui
 
 desktopdir = $(datadir)/applications
-desktop_DATA = resetmsmice.desktop
+desktop_DATA = $(top_srcdir)/resetmsmice.desktop
 
-resetmsmice_gui_SOURCES = gui.cc
+resetmsmice_gui_SOURCES = $(top_srcdir)/gui.cc
 resetmsmice_gui_CPPFLAGS = $(GTK_DEPS_CFLAGS)
 resetmsmice_gui_LDADD = $(GTK_DEPS_LIBS)
 
@@ -25,8 +25,8 @@ install-exec-hook:
 	groupadd -f ms-usb || :
 	chgrp ms-usb $(DESTDIR)$(bindir)/resetmsmice || :
 	chmod 2755 $(DESTDIR)$(bindir)/resetmsmice || :
-	@./resetmsmice-enable-boot --enable || :
+	@$(top_srcdir)/resetmsmice-enable-boot --enable || :
 
 uninstall-hook:
-	@./resetmsmice-enable-boot --disable
+	@$(top_srcdir)/resetmsmice-enable-boot --disable
 

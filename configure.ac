@@ -23,6 +23,8 @@ AC_CHECK_HEADERS([stdio.h stdarg.h string.h stdlib.h iconv.h locale.h sys/types.
 AC_CHECK_HEADERS([gtk/gtk.h sys/stat.h])
 AC_HEADER_STDBOOL
 
+INCLUDES="$INCLUDES -I\$(top_srcdir)"
+
 AC_SUBST(udevdir)
 PKG_PROG_PKG_CONFIG
 # check for udevdir

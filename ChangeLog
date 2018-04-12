@@ -26,3 +26,5 @@ resetmsmice have been moved to the bin folder. Included detection of
 versions will not cause problems. The udev rules file location is autodetected
 except for rpm installs where it is installed into /etc/udev/rules.d.
 v1.1.2 Fixed debian package installation and removal scripts. dpkg-statoverride is called differently so it doesn't cause the scripts to exit prematurely if there is no override. 
+v1.1.3 Fixed gui loader that was failing and giving weird UTF errors when activating the disable/enable scripts. Added Microsoft Sculpt mouse to list of fixable
+devices. Fixed Systemd return value error. Fixed configure script problems.
