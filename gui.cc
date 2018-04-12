@@ -113,13 +113,11 @@ signed char ExecSave::run(std::string& exe, std::string& output, bool quit_on_ne
             root_cmd = exe.substr(start, size);
         } 
         str_args.push_back(exe.substr(start, size));
-        std::cout << "testing: " << str_args[count];
         start += size + 1;
     }
     const char *ptr_args[str_args.size()+1];
     std::cout << "Executing: ";
     
-//(char* const*) &ptr_args.front();
     int sub = 0;
     while (sub < str_args.size()) {
        ptr_args[sub] = str_args[sub].c_str(); 
