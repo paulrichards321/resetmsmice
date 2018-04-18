@@ -1,5 +1,6 @@
 AC_INIT([resetmsmice], 1.1.3, [paulrichards321@gmail.com])
 AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_HEADER([conf.h])
 AC_MSG_CHECKING([pkg-config m4 macros])
 if test m4_ifdef([PKG_CHECK_MODULES], [yes], [no]) == yes; then
