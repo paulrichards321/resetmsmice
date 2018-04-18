@@ -83,7 +83,8 @@ subdir = .
 DIST_COMMON = INSTALL NEWS README AUTHORS ChangeLog \
 	$(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
-	$(srcdir)/conf.h.in depcomp COPYING TODO install-sh missing
+	$(srcdir)/conf.h.in depcomp COPYING TODO compile install-sh \
+	missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -98,11 +99,14 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(sbindir)" \
 	"$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(resetmsmicedir)" \
 	"$(DESTDIR)$(udevrulesdir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_resetmsmice_OBJECTS = main.$(OBJEXT) parse.$(OBJEXT)
+am__dirstamp = $(am__leading_dot)dirstamp
+am_resetmsmice_OBJECTS = $(top_srcdir)/main.$(OBJEXT) \
+	$(top_srcdir)/parse.$(OBJEXT)
 resetmsmice_OBJECTS = $(am_resetmsmice_OBJECTS)
 am__DEPENDENCIES_1 =
 resetmsmice_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
-am_resetmsmice_gui_OBJECTS = resetmsmice_gui-gui.$(OBJEXT)
+am_resetmsmice_gui_OBJECTS =  \
+	$(top_srcdir)/resetmsmice_gui-gui.$(OBJEXT)
 resetmsmice_gui_OBJECTS = $(am_resetmsmice_gui_OBJECTS)
 resetmsmice_gui_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
@@ -149,10 +153,6 @@ DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
-AM_V_lt = $(am__v_lt_@AM_V@)
-am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
-am__v_lt_0 = --silent
-am__v_lt_1 = 
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_CC = $(am__v_CC_@AM_V@)
@@ -165,6 +165,10 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
+AM_V_lt = $(am__v_lt_@AM_V@)
+am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+am__v_lt_0 = --silent
+am__v_lt_1 = 
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 AM_V_CXX = $(am__v_CXX_@AM_V@)
@@ -262,6 +266,7 @@ LIBPTHREAD = @LIBPTHREAD@
 LIBRT = @LIBRT@
 LIBS = @LIBS@
 LTLIBOBJS = @LTLIBOBJS@
+MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
 OBJEXT = @OBJEXT@
@@ -348,7 +353,7 @@ all: conf.h
 .SUFFIXES: .c .cc .o .obj
 am--refresh: Makefile
 	@:
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -375,9 +380,9 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	$(SHELL) ./config.status --recheck
 
-$(top_srcdir)/configure:  $(am__configure_deps)
+$(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	$(am__cd) $(srcdir) && $(AUTOCONF)
-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	$(am__cd) $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 $(am__aclocal_m4_deps):
 
@@ -388,7 +393,7 @@ conf.h: stamp-h1
 stamp-h1: $(srcdir)/conf.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status conf.h
-$(srcdir)/conf.h.in:  $(am__configure_deps) 
+$(srcdir)/conf.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
 	($(am__cd) $(top_srcdir) && $(AUTOHEADER))
 	rm -f stamp-h1
 	touch $@
@@ -437,10 +442,23 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+$(top_srcdir)/$(am__dirstamp):
+	@$(MKDIR_P) $(top_srcdir)
+	@: > $(top_srcdir)/$(am__dirstamp)
+$(top_srcdir)/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) $(top_srcdir)/$(DEPDIR)
+	@: > $(top_srcdir)/$(DEPDIR)/$(am__dirstamp)
+$(top_srcdir)/main.$(OBJEXT): $(top_srcdir)/$(am__dirstamp) \
+	$(top_srcdir)/$(DEPDIR)/$(am__dirstamp)
+$(top_srcdir)/parse.$(OBJEXT): $(top_srcdir)/$(am__dirstamp) \
+	$(top_srcdir)/$(DEPDIR)/$(am__dirstamp)
 
 resetmsmice$(EXEEXT): $(resetmsmice_OBJECTS) $(resetmsmice_DEPENDENCIES) $(EXTRA_resetmsmice_DEPENDENCIES) 
 	@rm -f resetmsmice$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(resetmsmice_OBJECTS) $(resetmsmice_LDADD) $(LIBS)
+$(top_srcdir)/resetmsmice_gui-gui.$(OBJEXT):  \
+	$(top_srcdir)/$(am__dirstamp) \
+	$(top_srcdir)/$(DEPDIR)/$(am__dirstamp)
 
 resetmsmice-gui$(EXEEXT): $(resetmsmice_gui_OBJECTS) $(resetmsmice_gui_DEPENDENCIES) $(EXTRA_resetmsmice_gui_DEPENDENCIES) 
 	@rm -f resetmsmice-gui$(EXEEXT)
@@ -483,83 +501,60 @@ uninstall-sbinSCRIPTS:
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f $(top_srcdir)/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/resetmsmice_gui-gui.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/$(DEPDIR)/main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/$(DEPDIR)/parse.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/$(DEPDIR)/resetmsmice_gui-gui.Po@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c $<
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c `$(CYGPATH_W) '$<'`
-
-main.o: $(top_srcdir)/main.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT main.o -MD -MP -MF $(DEPDIR)/main.Tpo -c -o main.o `test -f '$(top_srcdir)/main.c' || echo '$(srcdir)/'`$(top_srcdir)/main.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main.Tpo $(DEPDIR)/main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/main.c' object='main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o main.o `test -f '$(top_srcdir)/main.c' || echo '$(srcdir)/'`$(top_srcdir)/main.c
-
-main.obj: $(top_srcdir)/main.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT main.obj -MD -MP -MF $(DEPDIR)/main.Tpo -c -o main.obj `if test -f '$(top_srcdir)/main.c'; then $(CYGPATH_W) '$(top_srcdir)/main.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/main.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main.Tpo $(DEPDIR)/main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/main.c' object='main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o main.obj `if test -f '$(top_srcdir)/main.c'; then $(CYGPATH_W) '$(top_srcdir)/main.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/main.c'; fi`
-
-parse.o: $(top_srcdir)/parse.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT parse.o -MD -MP -MF $(DEPDIR)/parse.Tpo -c -o parse.o `test -f '$(top_srcdir)/parse.c' || echo '$(srcdir)/'`$(top_srcdir)/parse.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/parse.Tpo $(DEPDIR)/parse.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/parse.c' object='parse.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o parse.o `test -f '$(top_srcdir)/parse.c' || echo '$(srcdir)/'`$(top_srcdir)/parse.c
-
-parse.obj: $(top_srcdir)/parse.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT parse.obj -MD -MP -MF $(DEPDIR)/parse.Tpo -c -o parse.obj `if test -f '$(top_srcdir)/parse.c'; then $(CYGPATH_W) '$(top_srcdir)/parse.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/parse.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/parse.Tpo $(DEPDIR)/parse.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/parse.c' object='parse.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o parse.obj `if test -f '$(top_srcdir)/parse.c'; then $(CYGPATH_W) '$(top_srcdir)/parse.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/parse.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .cc.o:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ $<
 
 .cc.obj:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-resetmsmice_gui-gui.o: $(top_srcdir)/gui.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(resetmsmice_gui_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT resetmsmice_gui-gui.o -MD -MP -MF $(DEPDIR)/resetmsmice_gui-gui.Tpo -c -o resetmsmice_gui-gui.o `test -f '$(top_srcdir)/gui.cc' || echo '$(srcdir)/'`$(top_srcdir)/gui.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/resetmsmice_gui-gui.Tpo $(DEPDIR)/resetmsmice_gui-gui.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/gui.cc' object='resetmsmice_gui-gui.o' libtool=no @AMDEPBACKSLASH@
+$(top_srcdir)/resetmsmice_gui-gui.o: $(top_srcdir)/gui.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(resetmsmice_gui_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT $(top_srcdir)/resetmsmice_gui-gui.o -MD -MP -MF $(top_srcdir)/$(DEPDIR)/resetmsmice_gui-gui.Tpo -c -o $(top_srcdir)/resetmsmice_gui-gui.o `test -f '$(top_srcdir)/gui.cc' || echo '$(srcdir)/'`$(top_srcdir)/gui.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(top_srcdir)/$(DEPDIR)/resetmsmice_gui-gui.Tpo $(top_srcdir)/$(DEPDIR)/resetmsmice_gui-gui.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/gui.cc' object='$(top_srcdir)/resetmsmice_gui-gui.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(resetmsmice_gui_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o resetmsmice_gui-gui.o `test -f '$(top_srcdir)/gui.cc' || echo '$(srcdir)/'`$(top_srcdir)/gui.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(resetmsmice_gui_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o $(top_srcdir)/resetmsmice_gui-gui.o `test -f '$(top_srcdir)/gui.cc' || echo '$(srcdir)/'`$(top_srcdir)/gui.cc
 
-resetmsmice_gui-gui.obj: $(top_srcdir)/gui.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(resetmsmice_gui_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT resetmsmice_gui-gui.obj -MD -MP -MF $(DEPDIR)/resetmsmice_gui-gui.Tpo -c -o resetmsmice_gui-gui.obj `if test -f '$(top_srcdir)/gui.cc'; then $(CYGPATH_W) '$(top_srcdir)/gui.cc'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/gui.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/resetmsmice_gui-gui.Tpo $(DEPDIR)/resetmsmice_gui-gui.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/gui.cc' object='resetmsmice_gui-gui.obj' libtool=no @AMDEPBACKSLASH@
+$(top_srcdir)/resetmsmice_gui-gui.obj: $(top_srcdir)/gui.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(resetmsmice_gui_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT $(top_srcdir)/resetmsmice_gui-gui.obj -MD -MP -MF $(top_srcdir)/$(DEPDIR)/resetmsmice_gui-gui.Tpo -c -o $(top_srcdir)/resetmsmice_gui-gui.obj `if test -f '$(top_srcdir)/gui.cc'; then $(CYGPATH_W) '$(top_srcdir)/gui.cc'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/gui.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(top_srcdir)/$(DEPDIR)/resetmsmice_gui-gui.Tpo $(top_srcdir)/$(DEPDIR)/resetmsmice_gui-gui.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/gui.cc' object='$(top_srcdir)/resetmsmice_gui-gui.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(resetmsmice_gui_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o resetmsmice_gui-gui.obj `if test -f '$(top_srcdir)/gui.cc'; then $(CYGPATH_W) '$(top_srcdir)/gui.cc'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/gui.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(resetmsmice_gui_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o $(top_srcdir)/resetmsmice_gui-gui.obj `if test -f '$(top_srcdir)/gui.cc'; then $(CYGPATH_W) '$(top_srcdir)/gui.cc'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/gui.cc'; fi`
 install-desktopDATA: $(desktop_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(desktop_DATA)'; test -n "$(desktopdir)" || list=; \
@@ -872,6 +867,8 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-test -z "$(top_srcdir)/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_srcdir)/$(DEPDIR)/$(am__dirstamp)
+	-test -z "$(top_srcdir)/$(am__dirstamp)" || rm -f $(top_srcdir)/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -882,7 +879,7 @@ clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf ./$(DEPDIR)
+	-rm -rf $(top_srcdir)/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-tags
@@ -933,7 +930,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf ./$(DEPDIR)
+	-rm -rf $(top_srcdir)/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
