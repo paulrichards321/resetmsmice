@@ -1,7 +1,5 @@
 AC_INIT([resetmsmice], 1.1.3, [paulrichards321@gmail.com])
-AM_INIT_AUTOMAKE
 AM_INIT_AUTOMAKE([subdir-objects])
-AM_MAINTAINER_MODE([disable])
 AC_CONFIG_HEADER([conf.h])
 AC_MSG_CHECKING([pkg-config m4 macros])
 if test m4_ifdef([PKG_CHECK_MODULES], [yes], [no]) == yes; then
@@ -17,7 +15,6 @@ PKG_CHECK_MODULES([USB_DEPS], [libusb-1.0 >= 1.0])
 PKG_CHECK_MODULES([GTK_DEPS], [gtk+-2.0 >= 2.0])
 AC_CHECK_LIB(pthread, pthread_create, [LIBPTHREAD="-lpthread"], [LIBPTHREAD=""])
 AC_PROG_CC
-AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_SUBST(LIBRT)
 AC_SUBST(LIBPTHREAD)
