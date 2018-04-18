@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Encoding=UTF-8
-Name=Microsoft Mouse Settings
-Comment=resetmsmice
-Exec=resetmsmice-gui
-Icon=xorg.png
-Terminal=false
-Categories=Settings
