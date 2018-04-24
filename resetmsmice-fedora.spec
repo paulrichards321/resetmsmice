@@ -1,11 +1,11 @@
 Name:           resetmsmice
-Version:        1.1.2 
+Version:        1.1.3 
 Release:        1%{?dist}
 Summary:        Program to reset certain models of Microsoft Mice when the vertical scroll wheel scrolls too fast. Only needed if you dual boot between Windows and Linux.
 
 License:        GPLv2
 URL:            http://sourceforge.net/projects/resetmsmice/
-Source0:        http://sourceforge.net/projects/resetmsmice/files/resetmsmice-1.1.2.tar.gz
+Source0:        http://sourceforge.net/projects/resetmsmice/files/resetmsmice-1.1.3.tar.gz
 
 BuildRequires:  libusb1-devel, pkgconfig, gtk2-devel 
 Requires:       libusb1, gtk2, pkgconfig
@@ -48,6 +48,8 @@ update-desktop-database
 
 
 %changelog
+* Fri Apr 20 2018 paulrichards321@gmail.com 1.1.3
+- 1.1.3 Fixed gui loader that was failing and giving weird UTF errors when activating the disable/enable scripts. Added Microsoft Sculpt mouse to list of fixable devices. Fixed Systemd return value error. Fixed configure script problems.
 * Thu Mar 20 2014 paulrichards321@gmail.com 1.1.2
 - Fixed debian package installation and removal scripts. dpkg-statoverride is called differently so it doesn't cause the scripts to exit prematurely if there is no override. 
 * Fri Mar 14 2014 paulrichards321@gmail.com 1.1.1

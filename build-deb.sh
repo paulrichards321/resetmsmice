@@ -1,5 +1,5 @@
 #!/bin/sh
-VERSION="resetmsmice-1.1.2"
+VERSION="resetmsmice-1.1.3"
 TARGET=`echo $VERSION | tr - _`
 BDIR=`pwd`
 cd .. 

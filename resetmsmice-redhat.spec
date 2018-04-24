@@ -1,24 +1,23 @@
 Name:           resetmsmice
-Version:        1.0.6 
+Version:        1.1.3 
 Release:        1%{?dist}
 Summary:        Program to reset certain models of Microsoft Mice when the vertical scroll wheel scrolls too fast. Only needed if you dual boot between Windows and Linux.
 
 License:        GPLv2
 URL:            http://sourceforge.net/projects/resetmsmice/
-Source0:        http://sourceforge.net/projects/resetmsmice/files/resetmsmice-1.0.6.tar.gz
+Source0:        http://sourceforge.net/projects/resetmsmice/files/resetmsmice-1.1.2.tar.gz
 
-BuildRequires:  libusb1-devel, pkgconfig
-Requires:       libusb1
+BuildRequires:  libusb1-devel, pkgconfig, gtk2-devel 
+Requires:       libusb1, gtk2, pkgconfig
 
 %description 
 This fixes scroll wheel issues with certain Wireless Microsoft mice in X.org (includes KDE & Gnome applications), where the vertical wheel scrolls abnormally fast. The Microsoft mouse driver will set a scrolling mode that will not get reset when you do a warm reboot, so this is only needed if you dual boot between Microsoft Windows and some linux distro. 
-
 %prep
 %setup -q
 
 
 %build
-%configure
+%configure --with-udevdir=/etc/udev
 make %{?_smp_mflags}
 
 
@@ -27,23 +26,36 @@ rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 
 %post
-echo "Cleaning out any existing outdated resetmsmice symbolic links..."
-%{_sbindir}/resetmsmice-enable-boot --disable
-%{_sbindir}/resetmsmice-enable-boot --sysv
-
+groupadd -f ms-usb
+chgrp ms-usb %{_bindir}/resetmsmice
+chmod 2755 %{_bindir}/resetmsmice
+udevadm trigger --attr-match=idVendor=045e
+update-desktop-database
+%{_sbindir}/resetmsmice-enable-boot --enable 
 
 %preun
 %{_sbindir}/resetmsmice-enable-boot --disable
 
-
 %files
-%{_sbindir}/resetmsmice
+%{_bindir}/resetmsmice
+%{_bindir}/resetmsmice-gui
 %{_sbindir}/resetmsmice-enable-boot
+%{_datadir}/resetmsmice/resetmsmice.ui
+%{_datadir}/applications/resetmsmice.desktop
+%{_sysconfdir}/udev/rules.d/60-resetmsmice.rules
 
 %doc AUTHORS ChangeLog COPYING NEWS README TODO
 
 
 %changelog
+* Fri Apr 20 2018 paulrichards321@gmail.com 1.1.3
+- 1.1.3 Fixed gui loader that was failing and giving weird UTF errors when activating the disable/enable scripts. Added Microsoft Sculpt mouse to list of fixable devices. Fixed Systemd return value error. Fixed configure script problems.
+* Thu Mar 20 2014 paulrichards321@gmail.com 1.1.2
+- Fixed debian package installation and removal scripts. dpkg-statoverride is called differently so it doesn't cause the scripts to exit prematurely if there is no override. 
+* Fri Mar 14 2014 paulrichards321@gmail.com 1.1.1
+- Fixed resetmsmice-gui desktop icon on linux distributions that do not have /usr/local/sbin or /usr/sbin in the default PATH. resetmsmice-gui and resetmsmice have been moved to the bin folder. Included detection of /usr/local or /usr for executables and ui file so conflicting installed versions will not cause problems. The udev rules file location is autodetected except for rpm installs where it is installed into /etc/udev/rules.d.
+* Wed Mar 5 2014 paulrichards321@gmail.com 1.1.0
+- Made resetmsmice able to run without admin rights. It now runs with set group id with the group only expanding to ms-usb, with the ms-usb group able to talk to usb Microsoft mice devices via udev. Simplified the init script installer, it now autodetects what type of init setup you have, ie system v, systemd, or upstart. Made a gui for the utility to setup and remove startup scripts and reset the mouse.
 * Mon Sep 9 2013 paulrichards321@gmail.com 1.0.6
 - Further fixes to System V startup scripts. Tested on Centos 6.4 and Debian 7.1.
 * Sat Aug 31 2013 paulrichards321@gmail.com 1.0.5
