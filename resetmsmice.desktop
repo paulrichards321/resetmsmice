@@ -2,8 +2,8 @@
 Type=Application
 Encoding=UTF-8
 Name=Microsoft Mouse Settings
-Comment=resetmsmice
-Exec=resetmsmice-gui
-Icon=xorg.png
+Comment=Reset Microsoft Mouse
+Exec=sudo resetmsmice-gui
+Icon=cs-mouse
 Terminal=false
 Categories=Settings
