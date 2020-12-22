@@ -87,7 +87,7 @@ static const char* syntax =
 #include <getopt.h>
 #include <ctype.h>
 #include <pthread.h>
-#include "conf.h"
+#include "pthread-misc.h"
 #include "hid-userland.h"
 
 struct hid_device *hid_alloc(struct libusb_device*, struct libusb_device_descriptor *);
