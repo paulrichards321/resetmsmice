@@ -26,6 +26,7 @@ public:
   bool findIt(const char* exeName, QString& location);
   bool isRunning() { return running; }
   bool isDone() { return (!running); }
+  void terminate();
   static const int UseStdin;
   static const int UseStdout;
 signals:
@@ -33,6 +34,7 @@ signals:
 public slots:
   void readyReadStandardOutput();
   void readFromStdin(QString&);
+  void ctrlcFromStdin();
 };
 
 #endif

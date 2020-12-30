@@ -189,7 +189,6 @@ void ExecSave::key_press_event(const char *utf8_str, int size)
 {
   if (m_running)
   {
-    std::cout << "Write into pipe: " << utf8_str << std::endl;
     gsize bytes_written = 0;
     GIOStatus status = g_io_channel_write_chars(m_ch_stdin, utf8_str, size, &bytes_written, NULL);
     if (status == G_IO_STATUS_NORMAL) 

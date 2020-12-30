@@ -3,11 +3,13 @@
 
 #include <QtGlobal>
 #include <QMainWindow>
+#include <QGridLayout>
+#include <QLabel>
+#include <QPushButton>
 #include "terminalView.h"
-#include "ui_resetWindow.h"
 #include "execSave.h"
 
-class ResetWindow : public QWidget, private Ui_ResetWindow
+class ResetWindow : public QWidget
 {
   Q_OBJECT
 protected:
@@ -16,6 +18,13 @@ protected:
   ExecSave execSave;
   TerminalView* terminalText;
   QString endOfLine;
+  QGridLayout * grid;
+  QLabel * statusBootLabel;  
+  QPushButton * enableBootButton;
+  QPushButton * disableBootButton;
+  QPushButton * resetNowButton;
+  QLabel * labelAuth;
+  QLabel * about;
 public:
   explicit ResetWindow(QWidget *parent = nullptr);
   
@@ -28,6 +37,8 @@ public:
   void appendTerminalText(QString&);
   void setStatusText(QString&);
   void enableBoot(bool);
+protected:
+  void closeEvent(QCloseEvent *event);
 protected slots:
   void readFromStdout(QString&);
   void on_enableBootButton_clicked();

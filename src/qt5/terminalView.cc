@@ -1,4 +1,5 @@
 #include "terminalView.h"
+#include <QGuiApplication>
 #include <QtMath>
 #include <QFontDatabase>
 #include <QTextStream>
@@ -64,6 +65,11 @@ void TerminalView::horizScrollChanged(int value)
 void TerminalView::vertScrollChanged(int value)
 {
   yStart = value;
+  basePxHeight = (lineCount+1) * fixedCharHeight;
+  if (value <= basePxHeight)
+  {
+    yStart = 0;
+  }
 }
 
 
@@ -82,8 +88,24 @@ void TerminalView::keyPressEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)
     {
       appendPlainText(endOfLine);
+    } 
+    // Respond to ctrl-c:
+    // the MetaModifier is actually the control button on mac os x 
+    #ifdef Q_OS_MAC  
+    if (event->key()==Qt::Key_C && (QGuiApplication::keyboardModifiers() & Qt::MetaModifier)) 
+    #else
+    if (event->key()==Qt::Key_C && (QGuiApplication::keyboardModifiers() & Qt::ControlModifier)) 
+    #endif
+    {
+      appendPlainText(endOfLine);
+      QString warning = "Ctrl-C hit, terminated process.";
+      appendPlainText(warning);
+      emit ctrlcFromStdin();
     }
-    emit readFromStdin(text);
+    else
+    {
+      emit readFromStdin(text);
+    }
   }
 }
 
@@ -94,29 +116,26 @@ void TerminalView::setCaptureKeyEvent(bool newCaptureKeyEvent)
 }
 
 
-
 void TerminalView::updateTextSceneRect()
 {
-  qreal xMax = width() - 2;
-  qreal yMax = height() - 2;
-  if (basePxWidth > xMax) xMax = basePxWidth;
-  if (basePxHeight > yMax) yMax = basePxHeight;
-  QRectF rect(0, 0, xMax, yMax);
+  qreal viewWidth = width() - 2;
+  qreal viewHeight = height() - 2;
+  qreal sceneWidth = basePxWidth;
+  qreal sceneHeight = basePxHeight;
+  if (basePxWidth > viewWidth) viewWidth -= (scrollBarExtent + 2);
+  else if (basePxWidth < viewWidth) sceneWidth = viewWidth;
+  if (basePxHeight > viewHeight) viewHeight -= (scrollBarExtent + 2);
+  else if (basePxHeight < viewHeight) sceneHeight = viewHeight;
+  QRectF rect(0, 0, sceneWidth, sceneHeight);
   qreal xMin = xStart;
   qreal yMin = yStart;
-  xMax = width() - 2;
-  yMax = height() - 2;
-  if (basePxWidth > xMax)
-  {
-    xMax -= (scrollBarExtent + 2);
-  }
-  if (basePxHeight > yMax)
-  {
-    yMax -= (scrollBarExtent + 2);
-  }
+  qreal xMax = xStart + viewWidth;
+  qreal yMax = yStart + viewHeight;
+  if (xMax > basePxWidth) xMax = basePxWidth;
+  if (yMax > basePxHeight) yMax = basePxHeight;
   QRectF rect2(xMin, yMin, xMax, yMax);
   setSceneRect(rect);
-  ensureVisible(rect2, 0, 0);
+  ensureVisible(rect2, 1, 1);
   QList<QRectF> all;
   all.append(rect2);
   updateScene(all);
@@ -132,6 +151,7 @@ void TerminalView::calcTextSceneRect()
   basePxHeight = 0;
   maxCharCount = 0;
   subStrs.clear();
+  bool lastCharNewline = false;
   while (i < textLen)
   {
     int next = text.indexOf(endOfLine, i);
@@ -139,13 +159,21 @@ void TerminalView::calcTextSceneRect()
     {
       next = textLen;
     }
+    else if (next + endOfLine.length() >= textLen)
+    {
+      lastCharNewline = true;
+    }
     lineCount++;
-    
     subStrs.push_back(text.mid(i, next - i));
     int charCount = next - i;
     if (charCount > maxCharCount) maxCharCount = charCount;
     i = next+endOfLine.length();
   }  
+  if (lastCharNewline)
+  {
+    lineCount++;
+    subStrs.push_back("");
+  }
   if (lineCount > 0 && maxCharCount > 0)
   {
     basePxHeight = (lineCount+1) * fixedCharHeight;
@@ -189,9 +217,9 @@ void TerminalView::drawForeground(QPainter *painter, const QRectF &destRect)
   {
     QString subStr = subStrs[line];
     int subStrLen = subStr.length();
+    endCharB = subStrLen;
     if (subStrLen > startChar)
     {
-      endCharB = subStrLen;
       if (endCharB > endChar)
       {
         endCharB = endChar;

@@ -20,7 +20,7 @@ Then execute it using:
 #include "resetWindow.h"
 
 static const char * about_text = 
-  "This package fixes scroll wheel issues with certain Wireless Microsoft mice in X.org (includes KDE & Gnome applications), where the vertical wheel scrolls abnormally fast. Only needed if you dual boot between Microsoft Windows and some linux distribution.\n\n"
+  "This package fixes scroll wheel issues with certain Wireless Microsoft mice in X.org (includes KDE & Gnome applications), where the vertical wheel scrolls abnormally fast. Only needed if you dual boot between Microsoft Windows and Mac OS X or some linux distribution.\n\n"
   "Known to fix the vertical scroll wheel issue with the following models (and others related):\n"
   "    Microsoft Wireless Mouse 1000\n"
   "    Microsoft Wireless Optical Desktop 3000\n"
@@ -118,7 +118,7 @@ bool ResetWindow::create_terminal_view()
   gtk_widget_set_can_default(GTK_WIDGET(m_text_view), TRUE);
   g_signal_connect(G_OBJECT (text_view), "key_press_event", G_CALLBACK (ResetWindow::key_press_event), this);
   gtk_text_view_set_editable( GTK_TEXT_VIEW(text_view), FALSE);
-  gtk_text_view_set_wrap_mode( GTK_TEXT_VIEW(text_view), GTK_WRAP_WORD);
+  //gtk_text_view_set_wrap_mode( GTK_TEXT_VIEW(text_view), GTK_WRAP_WORD);
   gtk_text_view_set_cursor_visible( GTK_TEXT_VIEW(text_view), TRUE);
   scroll_window = GTK_WIDGET( gtk_scrolled_window_new(NULL, NULL) );
   gtk_container_add(GTK_CONTAINER(scroll_window), text_view);
@@ -139,14 +139,12 @@ bool ResetWindow::create_terminal_view()
 
 void ResetWindow::key_press_event(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
-  bool is_newline = false;
   char utf8_str[32];
   gint size = 0;
   if (data == NULL) return;
   ResetWindow *resetwindow = static_cast<ResetWindow*>(data);
   if (event->keyval == GDK_KEY_KP_Enter || event->keyval == GDK_KEY_Return)
   {
-    is_newline = true;
     resetwindow->append_terminal_text(resetwindow->m_newline);
     resetwindow->exec_save.key_press_event(resetwindow->m_newline.c_str(), resetwindow->m_newline.size());
   }
@@ -157,6 +155,9 @@ void ResetWindow::key_press_event(GtkWidget *widget, GdkEventKey *event, gpointe
     if (event->keyval == GDK_KEY_c
       && (event->state & modifiers) == GDK_CONTROL_MASK)
     {
+      std::string warning = "Ctrl-C hit, terminated process. ";
+      resetwindow->append_terminal_text(resetwindow->m_newline);
+      resetwindow->append_terminal_text(warning);
       resetwindow->exec_save.sigkill();
       return;
     }

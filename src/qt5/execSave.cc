@@ -30,6 +30,7 @@ ExecSave::~ExecSave()
     process->closeReadChannel(QProcess::StandardOutput);
     process->closeReadChannel(QProcess::StandardError);
     process->closeWriteChannel();
+    process->close();
     process->killEventLoop();
   }
 }
@@ -39,6 +40,7 @@ void ExecSave::setStdinObj(QObject *newStdinObj)
 {
   stdinObj = newStdinObj;
   connect(stdinObj, SIGNAL(readFromStdin(QString&)), this, SLOT(readFromStdin(QString&)));
+  connect(stdinObj, SIGNAL(ctrlcFromStdin()), this, SLOT(ctrlcFromStdin()));
 }
   
 
@@ -109,6 +111,26 @@ void ExecSave::readFromStdin(QString& text)
   {
     process->readFromStdin(text);
   }
+}
+
+
+void ExecSave::terminate()
+{
+  if (running && process)
+  {
+    qWarning() << "Killing current process!";
+    process->closeReadChannel(QProcess::StandardOutput);
+    process->closeReadChannel(QProcess::StandardError);
+    process->closeWriteChannel();
+    process->close();
+    process->killEventLoop();
+  }
+}
+
+
+void ExecSave::ctrlcFromStdin()
+{
+  terminate();
 }
 
 

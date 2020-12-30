@@ -29,6 +29,7 @@ public:
   void setCaptureKeyEvent(bool);
   signals:
   void readFromStdin(QString&);
+  void ctrlcFromStdin();
 public slots:
   void horizScrollChanged(int value);
   void vertScrollChanged(int value);

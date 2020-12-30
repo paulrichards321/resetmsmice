@@ -21,11 +21,15 @@ static const QString aboutText =
 
 ResetWindow::ResetWindow(QWidget *parent) : QWidget(parent)
 { 
-  setupUi(this);
-  aboutLabel->setText(aboutText);
   resized = false; 
   bufferSet = false;
   create();
+}
+
+void ResetWindow::closeEvent(QCloseEvent *event)
+{
+  execSave.terminate();
+  event->accept();
 }
 
 
@@ -99,21 +103,23 @@ void ResetWindow::getStatusText()
 bool ResetWindow::createTerminalView()
 {
   if (resized && bufferSet) { 
+    terminalText->grabKeyboard();
     return true; 
   } else if (resized) {
     return false;
   }
   resized = true;
 
+  int newWidth = width() - 20;
   resize(width(), height()+250);
-  QWidget* terminalWidget = new QWidget(this);
-  terminalWidget->setGeometry(20, 420, 600, 230);
-  terminalWidget->show();
+  QWidget * terminalWidget = new QWidget();
+  terminalWidget->resize(newWidth, 210);
   QGraphicsScene* terminalScene = new QGraphicsScene(terminalWidget);
   terminalText = new TerminalView(terminalScene, terminalWidget);
   execSave.setStdinObj(terminalText);
   execSave.setStdoutObj(terminalText);
-  terminalText->setGeometry(0, 0, 600, 230);
+  terminalText->resize(newWidth, 230);
+  grid->addWidget(terminalText, 6, 0, 1, 5);
   terminalText->show();
   terminalText->setFocus();
   endOfLine = terminalText->getEndOfLine();
@@ -288,6 +294,24 @@ void ResetWindow::resetNow()
 
 void ResetWindow::create()
 {
+  grid = new QGridLayout(this);
+  about = new QLabel(aboutText);
+  about->setWordWrap(true);
+  statusBootLabel = new QLabel("");
+  enableBootButton = new QPushButton("Enable");  
+  disableBootButton = new QPushButton("Disable");
+  resetNowButton = new QPushButton("Reset Now");
+  labelAuth = new QLabel("You may need to provide authentication to reset the mouse or change boot settings.");
+
+  grid->addWidget(about, 0, 0, 1, 5, Qt::AlignLeft);
+  grid->addWidget(statusBootLabel, 1, 0, 1, 3, Qt::AlignLeft);
+  grid->addWidget(enableBootButton, 1, 3, 1, 1, Qt::AlignRight);
+  grid->addWidget(disableBootButton, 1, 4, 1, 1, Qt::AlignLeft);
+  grid->addWidget(labelAuth, 3, 0, 1, 5, Qt::AlignLeft);
+  grid->addWidget(resetNowButton, 5, 0, 1, 1, Qt::AlignLeft);
+  connect(enableBootButton, SIGNAL(clicked()), this, SLOT(on_enableBootButton_clicked()));
+  connect(disableBootButton, SIGNAL(clicked()), this, SLOT(on_disableBootButton_clicked()));
+  connect(resetNowButton, SIGNAL(clicked()), this, SLOT(on_resetNowButton_clicked()));
   getStatusText();
   terminalText = NULL;
 }
