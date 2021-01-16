@@ -26,7 +26,7 @@ generate_plist() {
     <key>Label</key>
     <string>com.github.paulrichards321.resetmsmice</string>
     <key>Program</key>
-    <string>/usr/local/sbin/resetmsmice</string>
+    <string>/usr/local/bin/resetmsmice</string>
     <key>RunAtLoad</key>
     <true/>
     <key>OnDemand</key>
@@ -42,14 +42,19 @@ enable_auto() {
     echo "Error: must run resetmsmice-enable-boot as user with admin or root privileges."
     exit 1
   fi
+  mkdir -p /usr/local/bin 2> /dev/null
+  mkdir -p /usr/local/sbin 2> /dev/null
+  cp -a $1/resetmsmice /usr/local/bin
+  cp -a $1/resetmsmice-enable-boot /usr/local/sbin
   generate_plist
   launchctl load /Library/LaunchAgents/com.github.paulrichards321.resetmsmice.plist
   launchctl enable system/com.github.paulrichards321.resetmsmice.plist
   FOUND=`launchctl list | grep resetmsmice`
-  mkdir -p /var/lib/resetmsmice
+  mkdir -p /var/lib/resetmsmice 2> /dev/null
   if [ -n "$FOUND" ]
   then
     echo "ONBOOT=ENABLED" > /var/lib/resetmsmice/resetmsmice.dat
+    echo "Enabled."
   else
     echo "ONBOOT=DISABLED" > /var/lib/resetmsmice/resetmsmice.dat
   fi
@@ -68,6 +73,7 @@ disable_all() {
   rm -f /Library/LaunchAgents/com.github.paulrichards321.resetmsmice
   mkdir -p /var/lib/resetmsmice
   echo "ONBOOT=DISABLED" > /var/lib/resetmsmice/resetmsmice.dat
+  echo "Disabled."
 }
 
 
@@ -84,9 +90,11 @@ program_syntax() {
 
 # Start of shell script
 
+BUNDLE_PATH=`dirname $0`
+
 case "$1" in
 
---enable) enable_auto ;;
+--enable) enable_auto $BUNDLE_PATH ;;
 
 --status) check_status ;;
 

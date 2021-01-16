@@ -21,21 +21,22 @@ Copyright (C) 2011-2020 Paul F. Richards (paulrichards321@gmail.com)
 This code is under the GNU GPL v2 license. See below for full license! 
 
 ------------------------------------------------------------------------------
- Software dependacies to compile on Ubuntu, Kubuntu, Mint Linux and the other 
- Debian or Ubuntu derivatives
+Software dependacies to compile on Ubuntu, Kubuntu, Mint Linux and the other 
+Debian or Ubuntu derivatives
 ------------------------------------------------------------------------------
 # One liner to grab all the package requirements for Ubuntu, Kubuntu, etc:
 sudo apt-get install build-essential cmake pkg-config libusb-1.0-0-dev libgtk3-dev
 
 ------------------------------------------------------------------------------
- Software dependacies to compile on Redhat, Suse, or other RPM based distros 
+Software dependacies to compile on Redhat, Suse, or other RPM based distros 
 ------------------------------------------------------------------------------
 # One liner to grab all the package requirements for Redhat and other RPM
 # based distributions:
-sudo yum install cmake libusb1-devel gtk3-devel
+sudo dnf install "C Development Tools and Libraries"
+sudo dnf install cmake libusb1-devel gtk3-devel
  
 ------------------------------------------------------------------------------
- Software dependacies to compile on Mac OS X 
+Software dependacies to compile on Mac OS X 
 ------------------------------------------------------------------------------
 # I used Homebrew as the package manager, but you might find a different way.
 # For more information about brew visit here:

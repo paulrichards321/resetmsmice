@@ -20,7 +20,7 @@ Then execute it using:
 #include "resetWindow.h"
 
 static const char * about_text = 
-  "This package fixes scroll wheel issues with certain Wireless Microsoft mice in X.org (includes KDE & Gnome applications), where the vertical wheel scrolls abnormally fast. Only needed if you dual boot between Microsoft Windows and Mac OS X or some linux distribution.\n\n"
+  "This package fixes scroll wheel issues with certain Wireless Microsoft mice in X.org or Mac OS X, where the vertical wheel scrolls abnormally fast. Only needed if you dual boot between Microsoft Windows and Mac OS X or a linux distribution.\n\n"
   "Known to fix the vertical scroll wheel issue with the following models (and others related):\n"
   "    Microsoft Wireless Mouse 1000\n"
   "    Microsoft Wireless Optical Desktop 3000\n"

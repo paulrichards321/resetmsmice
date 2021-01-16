@@ -7,8 +7,12 @@
 #include <libusb-1.0/libusb.h>
 #include "resetWindow.h"
 
+#ifdef Q_OS_MAC  
+#include <CoreServices/CoreServices.h>
+#endif
+
 static const QString aboutText = 
-    "This package fixes scroll wheel issues with certain Wireless Microsoft mice in X.org or OS X (includes KDE, Gnome, and Mac OS X applications), where the vertical wheel scrolls abnormally fast. Only needed if you dual boot between Microsoft Windows and in Mac OS X or a linux distribution.\n\n"
+    "This package fixes scroll wheel issues with certain Wireless Microsoft mice in Linux or Mac OS X, where the vertical wheel scrolls abnormally fast. Only needed if you dual boot between Microsoft Windows and Mac OS X or a linux distribution.\n\n"
     "Known to fix the vertical scroll wheel issue with the following models (and others related):\n"
     "    Microsoft Wireless Mouse 1000\n"
     "    Microsoft Wireless Optical Desktop 3000\n"
@@ -41,38 +45,41 @@ void ResetWindow::setStatusText(QString& text)
 
 void ResetWindow::getStatusText()
 {
-  char selfLocation[256];
   QString strStatus = "Reset any Microsoft mice on bootup is currently: ";
   QString enableBootPath, output;
   QString errMsgStr;
   QTextStream errMsg(&errMsgStr); 
   QString scriptDir;
+  struct stat info;
+
+  #ifdef Q_OS_MAC
+  CFURLRef appUrlRef = CFBundleCopyResourceURL(CFBundleGetMainBundle(), CFSTR("resetmsmice-enable-boot"), NULL, NULL);
+  CFStringRef filePathRef = CFURLCopyPath(appUrlRef);
+  const char* filePath = CFStringGetCStringPtr(filePathRef, kCFStringEncodingUTF8);
+  if (filePath == NULL) {
+    filePath = "/usr/local/sbin/resetmsmice-enable-boot";
+  }
+  enableBootPath = filePath;
+  CFRelease(filePathRef);
+  CFRelease(appUrlRef);
+  
+  #else // Linux
+
+  char selfLocation[256];
 
   if (readlink("/proc/self/exe", selfLocation, 255) > 0) {
-    struct stat info;
-    char *lastDirPos = strrchr(selfLocation, '/');
-    if (lastDirPos != NULL) {
-      lastDirPos++;
-      *lastDirPos = 0;
-      scriptDir = selfLocation;
-    } else {
-      lastDirPos = strrchr(selfLocation, '\\');
-      if (lastDirPos != NULL) {
-        lastDirPos++;
-        *lastDirPos = 0;
-        scriptDir = selfLocation;
-      } 
-    }
-    if (scriptDir.length() == 0) {
+    if (strstr(selfLocation, "/local/") == NULL) {
       enableBootPath = "/usr/sbin/resetmsmice-enable-boot";
     } else {
-      enableBootPath = scriptDir;
-      enableBootPath += "resetmsmice-enable-boot";
+      enableBootPath = "/usr/local/sbin/resetmsmice-enable-boot";
     }
-    QByteArray enableBootPathArr = enableBootPath.toUtf8();
-    if (stat(enableBootPathArr.data(), &info) != 0) {
-      enableBootPath = "";
-    }
+  }
+
+  #endif
+
+  QByteArray enableBootPathArr = enableBootPath.toUtf8();
+  if (stat(enableBootPathArr.data(), &info) != 0) {
+    enableBootPath = "";
   }
   if (enableBootPath.length() == 0 && execSave.findIt("resetmsmice-enable-boot", enableBootPath) == false) {
     errMsg << endl << "Error: Cannot find resetmsmice-enable-boot script. Please make sure this script is installed in your PATH." << endl;
@@ -162,7 +169,8 @@ void ResetWindow::enableBoot(bool enable)
   QString sudoCmd, enableBootPath, output;
   QString errMsgStr;
   QTextStream errMsg(&errMsgStr);
-  char selfLocation[256];
+  QString scriptDir;
+  struct stat info;
 
   createTerminalView();
   clearTerminal();
@@ -174,17 +182,34 @@ void ResetWindow::enableBoot(bool enable)
      return;
   }
     
+  #ifdef Q_OS_MAC
+  CFURLRef appUrlRef = CFBundleCopyResourceURL(CFBundleGetMainBundle(), CFSTR("resetmsmice-enable-boot"), NULL, NULL);
+  CFStringRef filePathRef = CFURLCopyPath(appUrlRef);
+  const char* filePath = CFStringGetCStringPtr(filePathRef, kCFStringEncodingUTF8);
+  if (filePath == NULL) {
+    filePath = "/usr/local/sbin/resetmsmice-enable-boot";
+  }
+  enableBootPath = filePath;
+  CFRelease(filePathRef);
+  CFRelease(appUrlRef);
+  
+  #else // Linux
+
+  char selfLocation[256];
+
   if (readlink("/proc/self/exe", selfLocation, 255) > 0) {
-    struct stat info;
     if (strstr(selfLocation, "/local/") == NULL) {
       enableBootPath = "/usr/sbin/resetmsmice-enable-boot";
     } else {
       enableBootPath = "/usr/local/sbin/resetmsmice-enable-boot";
     }
-    QByteArray enableBootPathArr = enableBootPath.toUtf8();
-    if (stat(enableBootPathArr.data(), &info) != 0) {
-      enableBootPath = "";
-    }
+  }
+
+  #endif
+  
+  QByteArray enableBootPathArr = enableBootPath.toUtf8();
+  if (stat(enableBootPathArr.data(), &info) != 0) {
+    enableBootPath = "";
   }
   if (enableBootPath.length() == 0 && execSave.findIt("resetmsmice-enable-boot", enableBootPath) == false) {
     errMsg << "Error: Cannot find resetmsmice-enable-boot script. Please make sure this script is installed in your PATH." << endl;
@@ -246,26 +271,56 @@ void ResetWindow::on_resetNowButton_clicked()
 
 void ResetWindow::resetNow()
 {
-  char selfLocation[256];
   QString resetmsmiceCmd, output;
   QString errMsgStr;
   QTextStream errMsg(&errMsgStr);
   QString sudoCmd;
+  struct stat info;
 
   createTerminalView();
   clearTerminal();
   
+  #ifdef Q_OS_MAC
+  CFURLRef appUrlRef = CFBundleCopyResourceURL(CFBundleGetMainBundle(), CFSTR("resetmsmice"), NULL, NULL);
+  CFStringRef filePathRef = CFURLCopyPath(appUrlRef);
+  const char* filePath = CFStringGetCStringPtr(filePathRef, kCFStringEncodingUTF8);
+  if (filePath == NULL) {
+    filePath = "/usr/local/bin/resetmsmice";
+  }
+  resetmsmiceCmd = filePath;
+  CFRelease(filePathRef);
+  CFRelease(appUrlRef);
+  
+  #else // Linux
+
+  char selfLocation[256];
+
   if (readlink("/proc/self/exe", selfLocation, 255) > 0) {
-    struct stat info;
-    if (strstr(selfLocation, "/local/") == NULL) {
-      resetmsmiceCmd = "/usr/bin/resetmsmice";
+    char *lastDirPos = strrchr(selfLocation, '/');
+    if (lastDirPos != NULL) {
+      lastDirPos++;
+      *lastDirPos = 0;
+      exeDir = selfLocation;
     } else {
+      lastDirPos = strrchr(selfLocation, '\\');
+      if (lastDirPos != NULL) {
+        lastDirPos++;
+        *lastDirPos = 0;
+        exeDir = selfLocation;
+      } 
+    }
+    if (exeDir.length() == 0) {
       resetmsmiceCmd = "/usr/local/bin/resetmsmice";
+    } else {
+      resetmsmiceCmd = exeDir;
+      resetmsmiceCmd += "resetmsmice";
     }
-    QByteArray resetmsmiceCmdArr = resetmsmiceCmd.toUtf8();
-    if (stat(resetmsmiceCmdArr.data(), &info) != 0) {
-      resetmsmiceCmd = "";
-    }
+  }
+  #endif
+  
+  QByteArray resetmsmiceCmdArr = resetmsmiceCmd.toUtf8();
+  if (stat(resetmsmiceCmdArr.data(), &info) != 0) {
+    resetmsmiceCmd = "";
   }
   if (resetmsmiceCmd.length() == 0 && execSave.findIt("resetmsmice", resetmsmiceCmd) == false) {
     errMsg << "Error: Cannot find resetmsmice binary in PATH." << endl;
@@ -294,6 +349,7 @@ void ResetWindow::resetNow()
 
 void ResetWindow::create()
 {
+  setWindowTitle("resetmsmice-gui");
   grid = new QGridLayout(this);
   about = new QLabel(aboutText);
   about->setWordWrap(true);
