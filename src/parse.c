@@ -23,8 +23,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <libusb-1.0/libusb.h>
+#include <libusb.h>
 #include <errno.h>
+#include "pthread-misc.h"
 #include "hid-userland.h"
 
 const int hid_debug = 1;

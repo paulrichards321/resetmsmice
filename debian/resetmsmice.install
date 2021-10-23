@@ -1,2 +1,3 @@
-resetmsmice.ui /usr/share/resetmsmice
-resetmsmice.desktop /usr/share/applications
+data/resetmsmice.desktop /usr/share/applications
+data/resetmsmice-cmd.desktop /usr/share/applications
+data/resetmsmice.svg /usr/share/icons/hicolor/scalable/apps

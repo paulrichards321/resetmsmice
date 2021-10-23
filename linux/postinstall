@@ -1,0 +1,12 @@
+#!/bin/sh
+if [ -z "$RESETMSMICESBIN" ]
+then
+  export RESETMSMICESBIN='/usr/local/sbin'
+fi
+
+groupadd -f ms-usb
+chgrp ms-usb $RESETMSMICESBIN/resetmsmice
+chmod 2755 $RESETMSMICESBIN/resetmsmice
+update-desktop-database /usr/share/applications
+udevadm trigger --attr-match=idVendor=045e
+$RESETMSMICESBIN/resetmsmice-enable-boot --enable

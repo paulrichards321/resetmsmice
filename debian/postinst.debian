@@ -1,4 +1,4 @@
 #!/bin/sh -e
 resetmsmice-enable-boot --disable
-resetmsmice-enable-boot --sysv
+resetmsmice-enable-boot
 #DEBHELPER#

@@ -1,7 +1,7 @@
 /*
  * Fixes scroll wheel issues with certain Microsoft mice in X.org
- * (includes KDE & Gnome applications), where the vertical wheel
- * scrolls abnormally fast. Only needed if you dual boot between
+ * (includes KDE & Gnome applications), where the vertical
+ * wheel scrolls abnormally fast. Only needed if you dual boot between
  * Microsoft Windows and some linux distro.
  *
  * Known to fix the vertical scroll wheel issue with the following
@@ -15,7 +15,7 @@
  *    Microsoft Wireless Mouse 5000
  *    Microsoft Sculpt Mouse
  *
- * Copyright (C) 2011,2012  Paul F. Richards (paulrichards321@gmail.com)
+ * Copyright (C) 2011-2020  Paul F. Richards (paulrichards321@gmail.com)
  *
  * Parts of this code copyrighted by Alan Ott, Signal 11 Software
  *
@@ -35,8 +35,7 @@
  * 02110-1301, USA.
  */
 
-static const char* syntax = 
-  "Syntax: resetmsmice [OPTIONS]\n\n"
+static const char * about = 
   "Fixes scroll wheel issues with certain Wireless Microsoft mice in X.org\n"
   "(includes KDE & Gnome applications), where the vertical wheel scrolls\n"
   "abnormally fast. Only needed if you dual boot between Microsoft Windows\n"
@@ -51,28 +50,8 @@ static const char* syntax =
   "*    Microsoft Wireless Mouse 5000\n"
   "*    Microsoft Sculpt Mouse\n"
   "This program basically just resets a setting in the mouse through usb\n"
-  "communications and then exits.\n"
-  "If it is run with no options, check all Microsoft mice plugged into the\n"
-  "system. If run with -k flag, only check known models that have this issue.\n"
-  "All messages are printed on screen unless run as a daemon. Will always try\n"
-  "to log to syslog.\n"
-  "This program does not need root privileges to talk to the mouse as long\n"
-  "as it's udev file is installed and the group ms-usb is created.\n\n"
-  "The following are optional arguments, which are used to run smoother when\n"
-  " called through startup scripts or udev:\n"
-  "  -k, --only_known_models  only check for known models, don't look at the\n"
-  "                           hid reports.\n"
-  "  -i, --print_interfaces   useful for debugging, print out details of each\n"
-  "                           HID interface\n"
-  "  -b, --busnum=NUMBER      only check the device on this usb bus, and this\n"
-  "  -d, --devnum=NUMBER      usb device number (useful with udev)\n"
-  "  -u, --daemon             detach from the console and run in a subprocess,\n"
-  "                           to return control to caller immediately\n"
-  "                           (useful with startup scripts)\n"
-  "  -h, --help               this help screen.\n"
-  "\nReport bugs to the writer of this program:\n"
-  "      Paul F. Richards (paulrichards321@gmail.com)";
-
+  "communications and then exits.\n";
+ 
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -81,24 +60,22 @@ static const char* syntax =
 #include <locale.h>
 #include <sys/types.h>
 #include <syslog.h>
-#include <libusb-1.0/libusb.h>
+#include <libusb.h>
 #include <errno.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <ctype.h>
 #include <pthread.h>
-#include "conf.h"
+#include "pthread-misc.h"
 #include "hid-userland.h"
+#include "resetmsmice.h"
 
-struct hid_device *hid_alloc(struct libusb_device*, struct libusb_device_descriptor *);
-void hid_cleanup(struct hid_device*);
-int get_usb_descriptors(struct hid_device*);
-int mouse_open(struct hid_device*);
-bool ms_probe_mouse_x17(struct libusb_device*, struct libusb_device_descriptor*, int* status);
+static void hid_cleanup(struct hid_device*);
+static int mouse_open(struct hid_device*);
+static bool ms_probe_mouse_x17(struct libusb_device*, struct libusb_device_descriptor*, int* status);
 
-int print_usb_error(int error_value);
+static int print_usb_error(int error_value);
 
-/* Currently there's only one model id that we know works for sure */
 #define KNOWN_MICE_IDS 3
 
 struct MOUSE_TYPE {
@@ -112,32 +89,38 @@ mousetype[KNOWN_MICE_IDS] = {
 	{ 0x045e, 0x0745, "Microsoft", "Microsoft Wireless Mouse Series", ms_probe_mouse_x17 },
 	{ 0x045e, 0x00F9, "Microsoft", "Microsoft Wireless Desktop Receiver 3.1", ms_probe_mouse_x17 },
 	{ 0x045e, 0x076c, "Microsoft", "Microsoft Corp. Comfort Mouse 4500", ms_probe_mouse_x17 }
-/* Need tester: */
-/*
-	{ 0x045e, 0x00e1, "Microsoft", "Microsoft Corp. Wireless Laser Mouse 6000 Reciever", ms_probe_mouse_x17 },
-*/
+//	{ 0x045e, 0x00e1, "Microsoft", "Microsoft Corp. Wireless Laser Mouse 6000 Reciever", ms_probe_mouse_x17 },
 };
 
 #define TIME_OUT_VAL 1000 // in milliseconds
 bool print_interfaces = false;
+void* logger_data = NULL;
+void (*logger)(const char*, void*) = puts_logger;
 
 struct libusb_context* usb_context;
+
+void puts_logger(const char* text, void* data)
+{
+  puts(text);
+}
 
 void logprintf(const char *format, ...)
 {
 	va_list ap;
+  char buf[512] = { 0 };
 
 	va_start(ap, format);
-	vprintf(format, ap);
-	va_end(ap);
+	vsnprintf(buf, sizeof(buf), format, ap);
+  va_end(ap);
 	
-	printf("\n");
-
-	va_start(ap, format);
-	vsyslog(LOG_USER | LOG_NOTICE, format, ap);
-	va_end(ap);
+	syslog(LOG_USER | LOG_NOTICE, "%s", buf);
+  logger(buf, logger_data);
 }
 
+const char * resetmsmice_about()
+{
+  return about;
+}
 
 static void read_callback(struct libusb_transfer *transfer)
 {
@@ -231,7 +214,7 @@ static void *interrupt_thread(void *param)
 }
 
 
-int reset_feature_x17(struct hid_device *dev, bool *success)
+static int reset_feature_x17(struct hid_device *dev, bool *success)
 {
 	int r;
 	unsigned char datain[2] = { 0x17, 0x00 };
@@ -291,7 +274,7 @@ int reset_feature_x17(struct hid_device *dev, bool *success)
 }
 
 
-int mouse_open(struct hid_device *dev)
+static int mouse_open(struct hid_device *dev)
 {
 	int r;
 	
@@ -343,7 +326,7 @@ struct intf_enumerate {
 };
 
 
-void enum_hid_cleanup(struct intf_enumerate *intf_enum)
+static void enum_hid_cleanup(struct intf_enumerate *intf_enum)
 {
 	if (intf_enum->got_conf_desc == true) {
 		libusb_free_config_descriptor(intf_enum->conf_desc);
@@ -352,7 +335,7 @@ void enum_hid_cleanup(struct intf_enumerate *intf_enum)
 }
 
 
-bool add_hid_intf(struct intf_enumerate *intf_enum, struct libusb_device *usb_dev, struct libusb_device_descriptor *usb_desc, const struct libusb_interface_descriptor *intf_desc)
+static bool add_hid_intf(struct intf_enumerate *intf_enum, struct libusb_device *usb_dev, struct libusb_device_descriptor *usb_desc, const struct libusb_interface_descriptor *intf_desc)
 {
 	struct hid_device *dev;
 	const struct libusb_endpoint_descriptor *ep;
@@ -403,7 +386,7 @@ bool add_hid_intf(struct intf_enumerate *intf_enum, struct libusb_device *usb_de
 }
 
 
-int enum_hid_interfaces(struct intf_enumerate *intf_enum, struct libusb_device *usb_dev, struct libusb_device_descriptor *usb_desc)
+static int enum_hid_interfaces(struct intf_enumerate *intf_enum, struct libusb_device *usb_dev, struct libusb_device_descriptor *usb_desc)
 {
 	struct libusb_config_descriptor *conf_desc = NULL;
 	const struct libusb_interface *intf;
@@ -434,7 +417,7 @@ int enum_hid_interfaces(struct intf_enumerate *intf_enum, struct libusb_device *
 }
 
 
-int print_model_name(struct hid_device *dev)
+static int print_model_name(struct hid_device *dev)
 {
 	unsigned char language_in[256];
 	unsigned char model_name[256];
@@ -480,7 +463,7 @@ int print_model_name(struct hid_device *dev)
 }
 
 
-void hid_cleanup(struct hid_device *dev) 
+static void hid_cleanup(struct hid_device *dev) 
 {
 	if (dev->thread_init) {
 		/* Cause interrupt_thread() to stop. */
@@ -497,7 +480,7 @@ void hid_cleanup(struct hid_device *dev)
 }
 
 
-int print_usb_error(int error_value)
+static int print_usb_error(int error_value)
 {
 	switch (error_value) {
 	case LIBUSB_ERROR_TIMEOUT:
@@ -522,7 +505,7 @@ int print_usb_error(int error_value)
 }
 
 
-bool ms_probe_mouse_x17(struct libusb_device *usb_dev, struct libusb_device_descriptor *usb_desc, int *status)
+static bool ms_probe_mouse_x17(struct libusb_device *usb_dev, struct libusb_device_descriptor *usb_desc, int *status)
 {
 	struct intf_enumerate intf_enum;
 	struct list_head *pos;
@@ -600,85 +583,27 @@ bool ms_probe_mouse_x17(struct libusb_device *usb_dev, struct libusb_device_desc
 }
 
 
-int main(int argc, char** argv)
+void resetmsmice_set_logger(void (*new_logger)(const char*, void*), void* data)
 {
-	int busnum = 0, devnum = 0;
-	bool busnum_set = false, devnum_set = false;
-	bool daemonize = false;
-	bool only_known_models = false;
-	int choice;
+  logger = new_logger;
+  logger_data = data;
+}
+
+
+int resetmsmice(int busnum, int devnum, int options)
+{
+	int busnum_set = (options & RESETMSMICE_BUS_NUM_SET);
+  int devnum_set = (options & RESETMSMICE_DEV_NUM_SET);
+	int daemonize = (options & RESETMSMICE_DAEMONIZE);
+	int only_known_models = (options & RESETMSMICE_ONLY_KNOWN_MODELS);
 	libusb_device *usb_dev, **usb_devs;
 	struct libusb_device_descriptor desc;
-	int retval;
+	pid_t pID;
 	ssize_t cnt;
 	int problem_devices = 0;
-	pid_t pID;
-	int option_index = 0;
-	static struct option long_options[] =
-	{
-		{"only_known_models", no_argument, 0, 'k'},
-		{"print_interfaces", no_argument, 0, 'i'},
-		{"busnum", required_argument, 0, 'b'},
-		{"devnum", required_argument, 0, 'd'},
-		{"daemon", no_argument, 0, 'u'},
-		{"help", no_argument, 0, 'h'},
-		{0, 0, 0, 0}
-	};
-	const char* short_options = "kb:d:uih";
-	
-	setlocale(LC_ALL, ""); /* We need this for the unicode mouse model name, pulled from mouse */
+	int retval;
 
-	/*--------------------------------*/
-	/* Parse the command line options */
-	/*--------------------------------*/
-	choice = getopt_long(argc, argv, short_options, long_options, &option_index);
-	while (choice != -1) {
-		switch (choice) {
-		case 'b':
-			if (isdigit(optarg[0])) {
-				busnum = atoi(optarg);
-				busnum_set = true;
-			} else {
-				puts(syntax);
-				exit(1);
-			}
-			break;
-		case 'd':
-			if (isdigit(optarg[0])) {
-				devnum = atoi(optarg);
-				devnum_set = true;
-			} else {
-				puts(syntax);
-				exit(1);
-			}
-			break;
-		case 'u':
-			daemonize = true;
-			break;
-		case 'k':
-			only_known_models = true;
-			break;
-		case 'i':
-			print_interfaces = true;
-			break;
-		case 'h':
-			puts(syntax);
-			exit(0);
-		default:
-			puts(syntax);
-			exit(1);
-		}
-		choice = getopt_long(argc, argv, short_options, long_options, &option_index);
-	}
-	
-	/* Make sure user supplied both the bus number and device number and not just one or the other... */
-	if (devnum_set || busnum_set) {
-		if (devnum_set == false || busnum_set == false) {
-			puts("Please supply BOTH bus and device number.");
-			puts(syntax);
-			exit(1);
-		}
-	}
+  print_interfaces = (options & RESETMSMICE_PRINT_INTERFACES);
 
 	if (daemonize) {
 		pID = fork(); /* This is needed when we need to return from udev as soon as possible */
@@ -696,7 +621,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	char logname[32];
+	char logname[64];
 	snprintf(logname, sizeof(logname), "resetmsmice[%i]", getpid());
 	openlog(logname, LOG_CONS, LOG_USER);
 	
@@ -780,3 +705,4 @@ int main(int argc, char** argv)
 	}
 	return retval; /* This program returns a positive value on success, otherwise a libusb return code */
 }
+

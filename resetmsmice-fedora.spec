@@ -1,14 +1,14 @@
 Name:           resetmsmice
-Version:        1.1.3 
+Version:        1.2.1 
 Release:        1%{?dist}
 Summary:        Program to reset certain models of Microsoft Mice when the vertical scroll wheel scrolls too fast. Only needed if you dual boot between Windows and Linux.
 
 License:        GPLv2
 URL:            http://sourceforge.net/projects/resetmsmice/
-Source0:        http://sourceforge.net/projects/resetmsmice/files/resetmsmice-1.1.3.tar.gz
+Source0:        http://sourceforge.net/projects/resetmsmice/files/resetmsmice-1.2.1.tar.gz
 
-BuildRequires:  libusb1-devel, pkgconfig, gtk2-devel 
-Requires:       libusb1, gtk2, pkgconfig
+BuildRequires:  libusb1-devel, pkgconfig, gtk3-devel, glib2-devel 
+Requires:       libusb1, gtk3, glib2, pkgconfig
 
 %description 
 This fixes scroll wheel issues with certain Wireless Microsoft mice in X.org (includes KDE & Gnome applications), where the vertical wheel scrolls abnormally fast. The Microsoft mouse driver will set a scrolling mode that will not get reset when you do a warm reboot, so this is only needed if you dual boot between Microsoft Windows and some linux distro. 
@@ -30,6 +30,7 @@ groupadd -f ms-usb
 chgrp ms-usb %{_bindir}/resetmsmice
 chmod 2755 %{_bindir}/resetmsmice
 udevadm trigger --attr-match=idVendor=045e
+gtk-update-icon-cache -f -t -q /usr/share/icons/hicolor
 update-desktop-database
 %{_sbindir}/resetmsmice-enable-boot --enable 
 
@@ -40,16 +41,21 @@ update-desktop-database
 %{_bindir}/resetmsmice
 %{_bindir}/resetmsmice-gui
 %{_sbindir}/resetmsmice-enable-boot
-%{_datadir}/resetmsmice/resetmsmice.ui
+%{_datadir}/icons/hicolor/scalable/apps/resetmsmice.svg
 %{_datadir}/applications/resetmsmice.desktop
+%{_datadir}/applications/resetmsmice-cmd.desktop
 %{_sysconfdir}/udev/rules.d/60-resetmsmice.rules
 
 %doc AUTHORS ChangeLog COPYING NEWS README TODO
 
 
 %changelog
+* Tue Oct 19 2021 paulrichards321@gmail.com 1.2.1
+- 1.2.1 Fixed issues with password prompt for gtk3 and beeping as well.
+* Sun Mar 7 2021 paulrichards321@gmail.com 1.2.0
+- 1.2.0 Fixed issues with password prompts for gui tool. Updated to GTK3. Also optional Qt5 version. Included icon.
 * Fri Apr 20 2018 paulrichards321@gmail.com 1.1.3
-- 1.1.3 Fixed gui loader that was failing and giving weird UTF errors when activating the disable/enable scripts. Added Microsoft Sculpt mouse to list of fixable devices. Fixed Systemd return value error. Fixed configure script problems.
+- Fixed gui loader that was failing and giving weird UTF errors when activating the disable/enable scripts. Added Microsoft Sculpt mouse to list of fixable devices. Fixed Systemd return value error. Fixed configure script problems.
 * Thu Mar 20 2014 paulrichards321@gmail.com 1.1.2
 - Fixed debian package installation and removal scripts. dpkg-statoverride is called differently so it doesn't cause the scripts to exit prematurely if there is no override. 
 * Fri Mar 14 2014 paulrichards321@gmail.com 1.1.1

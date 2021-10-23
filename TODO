@@ -1,3 +1,1 @@
-1. Need to fix the syslog storage of /var/log/messages with systemd startup. This is currently under process.
-2. Packaging. Need to make RPMs and DEBs, etc. etc.
-3. Need to try to get the kernel patch accepted into the main source tree.
+1. Perhaps submit kernel patch?

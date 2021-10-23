@@ -10,7 +10,7 @@
 #export DH_VERBOSE=1
 export DEB_BUILD_HARDENING=1
 
-install: @echo "Installing...................... Testing!"
+#install: @echo "Installing...................... Testing!"
 
 %:
 	dh $@ 

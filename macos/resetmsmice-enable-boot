@@ -1,0 +1,106 @@
+#!/bin/sh
+
+check_status() {
+  STATUS=""
+  if [ -f /Library/LaunchAgents/com.github.paulrichards321.resetmsmice.plist -a -d /var/lib/resetmsmice -a -f /var/lib/resetmsmice/resetmsmice.dat ]
+  then
+    STATUS=`grep 'ONBOOT' /var/lib/resetmsmice/resetmsmice.dat | cut -d'=' -f2,2`
+  fi
+  
+  if [ -n "$STATUS" ]
+  then
+    echo "$STATUS"
+  else
+    echo "DISABLED"
+  fi
+  return 0
+}
+
+
+generate_plist() {
+  cat <<'EOF' > /Library/LaunchAgents/com.github.paulrichards321.resetmsmice.plist
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.github.paulrichards321.resetmsmice</string>
+    <key>Program</key>
+    <string>/usr/local/bin/resetmsmice</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>OnDemand</key>
+    <false/>
+</dict>
+</plist>
+EOF
+}
+
+enable_auto() {
+  if [ "$EUID" -ne 0 ]
+  then
+    echo "Error: must run resetmsmice-enable-boot as user with admin or root privileges."
+    exit 1
+  fi
+  mkdir -p /usr/local/bin 2> /dev/null
+  mkdir -p /usr/local/sbin 2> /dev/null
+  cp -a $1/resetmsmice /usr/local/bin
+  cp -a $1/resetmsmice-enable-boot /usr/local/sbin
+  generate_plist
+  launchctl load /Library/LaunchAgents/com.github.paulrichards321.resetmsmice.plist
+  launchctl enable system/com.github.paulrichards321.resetmsmice.plist
+  FOUND=`launchctl list | grep resetmsmice`
+  mkdir -p /var/lib/resetmsmice 2> /dev/null
+  if [ -n "$FOUND" ]
+  then
+    echo "ONBOOT=ENABLED" > /var/lib/resetmsmice/resetmsmice.dat
+    echo "Enabled."
+  else
+    echo "ONBOOT=DISABLED" > /var/lib/resetmsmice/resetmsmice.dat
+  fi
+}
+
+
+disable_all() {
+  if [ "$EUID" -ne 0 ]
+  then
+    echo "Error: must run resetmsmice-enable-boot as user with admin or root privileges."
+    exit 1
+  fi
+  generate_plist
+  launchctl disable system/com.github.paulrichards321.resetmsmice.plist > /dev/null 2>&1
+  launchctl unload /Library/LaunchAgents/com.github.paulrichards321.resetmsmice.plist > /dev/null 2>&1
+  rm -f /Library/LaunchAgents/com.github.paulrichards321.resetmsmice
+  mkdir -p /var/lib/resetmsmice
+  echo "ONBOOT=DISABLED" > /var/lib/resetmsmice/resetmsmice.dat
+  echo "Disabled."
+}
+
+
+program_syntax() {
+  echo "Usage: resetmsmice-enable-boot [option]"
+	echo "Needs just one of the following two options:"
+  echo "  --enable        enable resetmsmice to run each time linux boots up"
+  echo "                  this script will automatically detect what type of"
+  echo "                  startup scripts your system uses"
+  echo "  --disable       stop resetting the mouse on bootup"
+  echo "  --status        check to see if resetmsmice is set to run on boot"
+}
+
+
+# Start of shell script
+
+BUNDLE_PATH=`dirname $0`
+
+case "$1" in
+
+--enable) enable_auto $BUNDLE_PATH ;;
+
+--status) check_status ;;
+
+--disable) disable_all ;;
+
+*) program_syntax ;;
+
+esac
+
